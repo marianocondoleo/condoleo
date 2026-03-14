@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   id:        text("id").primaryKey(),
   email:     text("email").notNull().unique(),
   phone:     text("phone"),
+  dni: text("dni"),
   role:      userRoleEnum("role").default("customer"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -44,6 +45,8 @@ export const addresses = pgTable("addresses", {
   userId:    text("user_id").references(() => users.id),
   street:    text("street").notNull(),
   number:    text("number").notNull(),
+  floor:      text("floor"),
+  postalCode: text("postal_code"),
   city:      text("city").notNull(),
   zone:      text("zone"),
   lat:       numeric("lat", { precision: 10, scale: 7 }),

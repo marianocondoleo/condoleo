@@ -47,16 +47,24 @@ return (
             >
               Catálogo
             </Link>
-            {user ? (
-              <UserButton />
-            ) : (
-              <Link
-                href="/sign-in"
-                className="text-white/70 hover:text-white border border-white/20 hover:border-white/60 px-5 py-2 rounded-full text-xs tracking-widest uppercase font-light transition-all duration-300"
-              >
-                Ingresar
-              </Link>
-            )}
+           {user ? (
+  <div className="flex items-center gap-4">
+    <Link
+      href="/perfil"
+      className="text-white/50 hover:text-white text-xs tracking-widest uppercase font-light transition-colors"
+    >
+      Mi perfil
+    </Link>
+    <UserButton />
+  </div>
+) : (
+  <Link
+    href="/sign-in"
+    className="text-white/70 hover:text-white border border-white/20 hover:border-white/60 px-5 py-2 rounded-full text-xs tracking-widest uppercase font-light transition-all duration-300"
+  >
+    Ingresar
+  </Link>
+)}
           </div>
         </nav>
 
@@ -87,7 +95,7 @@ return (
                 <span>→</span>
               </Link>
               <Link
-                href="/perfil"
+                href="#"
                 className="inline-flex items-center gap-4 border border-white/20 text-white/50 hover:text-white hover:border-white/60 px-8 py-4 text-xs tracking-widest uppercase font-light transition-all duration-300 rounded-full"
               >
                 Mis pedidos
