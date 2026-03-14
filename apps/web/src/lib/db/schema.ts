@@ -71,6 +71,8 @@ export const orders = pgTable("orders", {
   deliveryDate: timestamp("delivery_date"),
   deliverySlot: text("delivery_slot"),
   notes:        text("notes"),
+  metodoPago: text("metodo_pago"),
+  comprobanteUrl: text("comprobante_url"),
   createdAt:    timestamp("created_at").defaultNow(),
 });
 

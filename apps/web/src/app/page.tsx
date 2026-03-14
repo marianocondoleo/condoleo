@@ -95,7 +95,7 @@ return (
                 <span>→</span>
               </Link>
               <Link
-                href="#"
+                href="/pedidos"
                 className="inline-flex items-center gap-4 border border-white/20 text-white/50 hover:text-white hover:border-white/60 px-8 py-4 text-xs tracking-widest uppercase font-light transition-all duration-300 rounded-full"
               >
                 Mis pedidos

@@ -60,6 +60,7 @@ export default function CheckoutPage() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState("");
   const [franjaSeleccionada, setFranjaSeleccionada] = useState("");
   const [notas, setNotas] = useState("");
+  const [metodoPago, setMetodoPago] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const fechas = getFechasDisponibles();
@@ -91,9 +92,13 @@ export default function CheckoutPage() {
 
   const handleConfirmar = async () => {
     if (!fechaSeleccionada || !franjaSeleccionada) {
-      setError("Seleccioná fecha y franja horaria");
-      return;
-    }
+  setError("Seleccioná fecha y franja horaria");
+  return;
+}
+if (!metodoPago) {
+  setError("Seleccioná un método de pago");
+  return;
+}
     setError("");
     setLoading(true);
 
@@ -105,17 +110,22 @@ export default function CheckoutPage() {
         deliveryDate: fechaSeleccionada,
         deliverySlot: franjaSeleccionada,
         notes: notas,
+        metodoPago,
       }),
     });
 
     const data = await res.json();
     setLoading(false);
 
-    if (data.ok) {
-      localStorage.removeItem("carrito");
-      window.dispatchEvent(new Event("carrito-actualizado"));
-      router.push(`/pedido/${data.orderId}`);
-    } else {
+if (data.ok) {
+  localStorage.removeItem("carrito");
+  window.dispatchEvent(new Event("carrito-actualizado"));
+  if (data.redirect) {
+    window.location.href = data.redirect; // MercadoPago
+  } else {
+    router.push(`/pedido/${data.orderId}`);
+  }
+} else {
       setError(data.error ?? "Error al confirmar el pedido");
     }
   };
@@ -264,6 +274,40 @@ export default function CheckoutPage() {
             </div>
 
           </div>
+          {/* Método de pago */}
+<div>
+  <p className="text-white/30 tracking-[0.3em] uppercase text-xs mb-5">
+    Método de pago
+  </p>
+  <div className="flex flex-col gap-2">
+    {[
+      { id: "mercadopago", label: "MercadoPago", icon: "💳", desc: "Pagá con tu cuenta MP" },
+      { id: "tarjeta", label: "Tarjeta", icon: "🏦", desc: "Crédito o débito" },
+      { id: "transferencia", label: "Transferencia", icon: "🔄", desc: "CBU / Alias" },
+      { id: "efectivo", label: "Efectivo", icon: "💵", desc: "Al momento de la entrega" },
+    ].map(metodo => (
+      <button
+        key={metodo.id}
+        onClick={() => setMetodoPago(metodo.id)}
+        className={`flex items-center gap-4 px-5 py-4 rounded-lg border text-left transition-all duration-200 ${
+          metodoPago === metodo.id
+            ? "bg-white text-black border-white"
+            : "border-white/10 text-white/50 hover:border-white/30 hover:text-white"
+        }`}
+      >
+        <span className="text-xl">{metodo.icon}</span>
+        <div>
+          <p className={`text-sm font-light ${metodoPago === metodo.id ? "text-black" : "text-white"}`}>
+            {metodo.label}
+          </p>
+          <p className={`text-xs ${metodoPago === metodo.id ? "text-black/50" : "text-white/30"}`}>
+            {metodo.desc}
+          </p>
+        </div>
+      </button>
+    ))}
+  </div>
+</div>
 
           {/* Columna derecha — resumen */}
           <div>
