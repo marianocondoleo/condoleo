@@ -2,6 +2,7 @@
 import { useUser, UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import CarritoIcon from "@/components/CarritoIcon";
 
 type Product = {
   id: string;
@@ -42,6 +43,7 @@ export default function CatalogoPage() {
           Corte & Co.
         </Link>
         <div className="flex items-center gap-6">
+          <CarritoIcon />  
           {user ? (
             <>
               <Link href="/perfil" className="text-white/40 hover:text-white text-xs tracking-widest uppercase font-light transition-colors">
