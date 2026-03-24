@@ -1,9 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { orders, orderItems, users, addresses } from "@/lib/db/schema";
+import { orders, orderItems, users, addresses, products } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import MercadoPagoConfig, { Preference } from "mercadopago";
+
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
     status: statusInicial,
   }).returning();
 
-  await db.insert(orderItems).values(
+await db.insert(orderItems).values(
     items.map((item: any) => ({
       orderId: order.id,
       productId: item.id,
@@ -52,6 +53,24 @@ export async function POST(req: Request) {
       unitPrice: Number(item.pricePerKg).toFixed(2),
     }))
   );
+
+  // Descontar stock por cada producto
+  for (const item of items) {
+    const product = await db
+      .select({ stockKg: products.stockKg })
+      .from(products)
+      .where(eq(products.id, item.id))
+      .limit(1);
+
+    if (product[0]) {
+      const nuevoStock = Math.max(0, Number(product[0].stockKg) - Number(item.cantidad));
+      await db.update(products)
+        .set({ stockKg: nuevoStock.toFixed(3) })
+        .where(eq(products.id, item.id));
+    }
+  }
+
+  return NextResponse.json({ ok: true, orderId: order.id, redirect: null });
 
   // Efectivo y transferencia — devolver orderId directo
   if (metodoPago === "efectivo" || metodoPago === "transferencia") {
