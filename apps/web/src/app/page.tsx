@@ -1,7 +1,6 @@
 "use client";
 import { useUser, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
-import CarritoIcon from "@/components/CarritoIcon";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -20,7 +19,8 @@ export default function Home() {
       });
   }, [isLoaded, user]);
 
-  const bgImage = "url('https://images.pexels.com/photos/29095933/pexels-photo-29095933.jpeg?auto=compress&cs=tinysrgb&w=1800')";
+  const bgImage =
+    "url('https://images.pexels.com/photos/5960467/pexels-photo-5960467.jpeg')";
 
   if (!isLoaded) {
     return (
@@ -32,45 +32,45 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
-      {/* Imagen de fondo */}
-   <div
-  className="absolute inset-0"
-  style={{
-    backgroundImage: bgImage,
-    filter: user ? "brightness(0.5) saturate(0.9)" : "brightness(0.4) saturate(0.9)",
-    backgroundSize: "55%",
-    backgroundPosition: "center center",
-    backgroundRepeat: "no-repeat",
-  }}
-/>
-<div className="absolute inset-0" style={{
-  background: "radial-gradient(ellipse 55% 70% at 50% 50%, transparent 30%, black 75%)",
-}} />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/60" />
+      {/* Fondo */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: bgImage,
+          filter: user
+            ? "brightness(0.5) saturate(0.8)"
+            : "brightness(0.4) saturate(0.8)",
+          backgroundSize: "55%",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/70" />
 
       <div className="relative z-10 flex flex-col min-h-screen">
 
-        {/* Navbar */}
+        {/* NAVBAR */}
         <nav className="flex items-center justify-between px-10 py-8">
-          <span
-            className="text-white tracking-[0.3em] uppercase text-sm font-light"
-            style={{ fontFamily: "Georgia, serif" }}
-          >
-            Corte & Co.
+          <span className="text-white tracking-[0.3em] uppercase text-sm font-light">
+            condoleo
           </span>
+
           <div className="flex items-center gap-6">
-            <Link
-              href="/catalogo"
-              className="text-white/50 hover:text-white text-xs tracking-widest uppercase font-light transition-colors"
-            >
-              Catálogo
-            </Link>
-            <CarritoIcon />
+            {user && (
+              <Link
+                href="/solicitudes"
+                className="text-white/50 hover:text-white text-xs tracking-widest uppercase"
+              >
+                Mis solicitudes
+              </Link>
+            )}
+
             {user ? (
               <div className="flex items-center gap-4">
                 <Link
                   href="/perfil"
-                  className="text-white/50 hover:text-white text-xs tracking-widest uppercase font-light transition-colors"
+                  className="text-white/50 hover:text-white text-xs tracking-widest uppercase"
                 >
                   Mi perfil
                 </Link>
@@ -79,7 +79,7 @@ export default function Home() {
             ) : (
               <Link
                 href="/sign-in"
-                className="text-white/70 hover:text-white border border-white/20 hover:border-white/60 px-5 py-2 rounded-full text-xs tracking-widest uppercase font-light transition-all duration-300"
+                className="text-white/70 hover:text-white border border-white/20 hover:border-white/60 px-5 py-2 rounded-full text-xs tracking-widest uppercase"
               >
                 Ingresar
               </Link>
@@ -87,73 +87,76 @@ export default function Home() {
           </div>
         </nav>
 
+        {/* HERO */}
         {user ? (
-          /* Hero logueado — alineado a la izquierda */
           <div className="flex flex-col justify-end flex-1 px-16 pb-24">
-            <p className="text-white/30 tracking-[0.6em] uppercase text-xs mb-6 font-light">
-              Buenos Aires
+            <p className="text-white/30 tracking-[0.6em] uppercase text-xs mb-6">
+              Envios a todo el país.
             </p>
-            <h1
-              className="text-white text-7xl font-light leading-tight mb-4"
-              style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}
-            >
+
+            <h1 className="text-white text-7xl font-light leading-tight mb-4">
               Bienvenido,<br />
-              <span className="text-white/50">{user.firstName}.</span>
+              <span className="text-[#6294A0]">{user.firstName}.</span>
             </h1>
+
             <div className="w-10 h-px bg-white/20 my-6" />
-            <p className="text-zinc-500 text-base font-light mb-10 leading-relaxed">
-              Carne premium, envasada al vacío.<br />
-              Directo a tu puerta.
+
+            <p className="text-zinc-400 text-base mb-10 leading-relaxed">
+              Plantillas ortopédicas a medida.<br />
+              Diseñadas según indicaciónes médicas.
             </p>
+
             <div className="flex items-center gap-4">
               <Link
-                href="/catalogo"
-                className="inline-flex items-center gap-4 bg-white text-black px-10 py-4 text-xs tracking-widest uppercase font-medium hover:bg-zinc-200 transition-all duration-300 rounded-full"
+                href="/solicitar"
+                className="inline-flex items-center gap-4 bg-[#6294A0] text-black px-10 py-4 text-xs tracking-widest uppercase font-medium hover:opacity-90 transition-all rounded-full"
               >
-                Ver catálogo
-                <span>→</span>
+                Solicitar ahora →
               </Link>
+
               <Link
-                href="/pedidos"
-                className="inline-flex items-center gap-4 border border-white/20 text-white/50 hover:text-white hover:border-white/60 px-8 py-4 text-xs tracking-widest uppercase font-light transition-all duration-300 rounded-full"
+                href="/solicitudes"
+                className="inline-flex items-center gap-4 border border-white/20 text-white/50 hover:text-white hover:border-white/60 px-8 py-4 text-xs tracking-widest uppercase rounded-full"
               >
-                Mis pedidos
+                Mis solicitudes
               </Link>
             </div>
           </div>
         ) : (
-          /* Hero no logueado — centrado */
           <div className="flex flex-col items-center justify-center flex-1 text-center px-10">
-            <p className="text-white/30 tracking-[0.6em] uppercase text-xs mb-10 font-light">
-              Buenos Aires
+            <p className="text-white/30 tracking-[0.6em] uppercase text-xs mb-10">
+              Empresa Argentina
             </p>
-            <h1
-              className="text-white text-8xl font-light leading-none mb-6"
-              style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}
-            >
-              Corte & Co.
-            </h1>
+
+          <h1
+            className="text-white text-8xl font-light leading-none mb-6"
+            style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}
+          >
+            Condoleo.
+          </h1>
+
             <div className="w-12 h-px bg-white/20 my-8" />
-            <p className="text-zinc-500 text-base font-light mb-14 max-w-sm leading-relaxed">
-              Carne premium, envasada al vacío. Puerta a puerta.
+
+            <p className="text-zinc-400 text-base mb-14 max-w-sm leading-relaxed">
+               Plantillas ortopédicas a medida.<br />
+              Diseñadas según indicaciónes médicas.
             </p>
+
             <Link
-              href="/catalogo"
-              className="inline-flex items-center gap-4 bg-white text-black px-10 py-4 text-xs tracking-widest uppercase font-medium hover:bg-zinc-200 transition-all duration-300 rounded-full"
+              href="/sign-in"
+              className="inline-flex items-center gap-4 bg-[#6294A0] text-black px-10 py-4 text-xs tracking-widest uppercase font-medium rounded-full"
             >
-              Ver catálogo
-              <span>→</span>
+              Comenzar →
             </Link>
           </div>
         )}
 
-        {/* Footer */}
+        {/* FOOTER */}
         <div className="flex justify-center pb-10">
           <p className="text-zinc-500 text-xs tracking-widest uppercase">
-            Calidad · Frescura · Confianza
+            Precisión · Salud · Confianza
           </p>
         </div>
-
       </div>
     </div>
   );
