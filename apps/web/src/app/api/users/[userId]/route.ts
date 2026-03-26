@@ -1,4 +1,4 @@
-
+// src/app/api/users/[userId]/route.ts
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,10 +7,9 @@ interface Params {
 }
 
 export async function GET(req: NextRequest, { params }: Params) {
-  try {
-    const { userId } = params;
+  const { userId } = params;
 
-    // Buscamos el usuario en Neon
+  try {
     const user = await db.query.users.findFirst({
       where: (u) => u.id.eq(userId),
     });
@@ -19,10 +18,13 @@ export async function GET(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
-    // Retornamos el objeto del usuario (incluyendo role)
-    return NextResponse.json(user);
+    return NextResponse.json({
+      id: user.id,
+      email: user.email,
+      role: user.role, // 🔹 Asegúrate que esto exista en Neon
+    });
   } catch (error) {
-    console.error("Error en /api/users/[userId]:", error);
+    console.error(error);
     return NextResponse.json({ error: "Error interno", details: String(error) }, { status: 500 });
   }
 }

@@ -17,7 +17,7 @@ export default function RootLayout({
       signInUrl="/sign-in" 
       signUpUrl="/sign-up"
       signOutRedirectUrl="/sign-in"
-      fallbackRedirectUrl="/"
+      afterSignInUrl="/home"
     >
       <html lang="es">
         <body>{children}</body>
