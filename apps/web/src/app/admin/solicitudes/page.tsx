@@ -19,7 +19,7 @@ type Solicitud = {
     }[];
   };
   talle: string;
-  pie: string;
+  tipoMedida: string;
   status: string;
   medicoNombre?: string;
   notas?: string;
@@ -69,6 +69,11 @@ export default function AdminSolicitudesPage() {
 
   return (
     <div className="min-h-screen p-8 space-y-8">
+            <div className="flex items-center justify-between mb-10">
+        <h1 className="text-4xl font-light" style={{ fontFamily: "Georgia, serif" }}>
+          Solicitudes.
+        </h1>
+      </div>
       {Object.keys(grouped).length === 0 && (
         <p className="text-white/50">No hay solicitudes para mostrar.</p>
       )}
@@ -119,7 +124,7 @@ export default function AdminSolicitudesPage() {
                     {/* Solicitud */}
                     <div className="border-t border-white/20 pt-2">
                       <p className="font-semibold mb-2 text-white/80 text-sm uppercase">Solicitud</p>
-                      <p>Talle: {s.talle} ({s.pie})</p>
+                      <p>Medida: {s.talle} {s.tipoMedida}</p>
                       {s.product && <p>Producto: {s.product.name}</p>}
                       {s.files?.length > 0 && (
                         <div className="mt-1">

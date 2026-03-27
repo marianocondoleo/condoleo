@@ -68,10 +68,12 @@ export default function Solicitar() {
 
     setLoading(true);
 
+     console.log("FORM STATE:", form); 
+
     const body = new FormData();
     body.append("productId", form.productId);
-    body.append("talle", form.talle);
-    body.append("unidad", form.unidad);
+    body.append("talle", form.talle);     
+    body.append("tipoMedida", form.unidad);
     body.append("medicoNombre", form.medicoNombre);
     body.append("notas", form.notas);
 

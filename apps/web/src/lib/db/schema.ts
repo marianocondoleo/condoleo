@@ -26,11 +26,6 @@ export const solicitudStatusEnum = pgEnum("solicitud_status", [
   "cancelada",
 ]);
 
-export const pieEnum = pgEnum("pie", [
-  "izquierdo",
-  "derecho",
-  "ambos",
-]);
 
 export const paymentMethodEnum = pgEnum("payment_method", [
   "mercadopago",
@@ -133,8 +128,9 @@ export const solicitudes = pgTable("solicitudes", {
   status: solicitudStatusEnum("status").default("solicitud_enviada"),
 
   // Datos clínicos
+  // DESPUÉS
   talle: text("talle").notNull(),
-  pie: pieEnum("pie").notNull(),
+  tipoMedida: text("tipo_medida").notNull(), // "cm" o "calzado"
   medicoNombre: text("medico_nombre"),
   notas: text("notas"),
 

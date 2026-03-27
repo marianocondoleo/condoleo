@@ -10,8 +10,9 @@ type Props = {
 
 export default function AdminLayout({ children }: Props) {
   const links = [
+    { href: "/admin/", label: "Dashboard", emoji: "👨‍💻" },
     { href: "/admin/solicitudes", label: "Solicitudes", emoji: "📋" },
-    { href: "/admin/envios", label: "Envios", emoji: "📦" },
+    { href: "/admin/productos", label: "Productos", emoji: "📦" },
     { href: "/admin/metodos", label: "Métodos de Pago", emoji: "💳" },
     { href: "/admin/configuracion", label: "Configuración", emoji: "⚙️" },
   ];

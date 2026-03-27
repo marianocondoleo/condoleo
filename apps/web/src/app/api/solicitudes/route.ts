@@ -7,24 +7,27 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    // 🔐 Auth
     const { userId } = await auth();
     if (!userId) return Response.json({ error: "No autorizado" }, { status: 401 });
 
-    // 📥 FormData
     const formData = await req.formData();
+console.log("FORM DATA:", {
+  productId: formData.get("productId"),
+  talle: formData.get("talle"),
+  medida: formData.get("medida"),
+  tipoMedida: formData.get("tipoMedida"),
+});
     const productId = formData.get("productId") as string;
     const talle = formData.get("talle") as string;
-    const pie = (formData.get("pie") as string) || "ambos";
+    const tipoMedida = formData.get("tipoMedida") as string; 
     const medicoNombre = formData.get("medicoNombre") as string;
     const notas = formData.get("notas") as string;
     const file = formData.get("file") as File | null;
 
-    if (!productId || !talle) {
+    if (!productId || !talle || !tipoMedida) {
       return Response.json({ error: "Faltan datos obligatorios" }, { status: 400 });
     }
 
-    // 🔍 Buscar producto
     const product = await db.query.products.findFirst({
       where: (p, { eq }) => eq(p.id, productId),
     });
@@ -33,7 +36,6 @@ export async function POST(req: Request) {
       return Response.json({ error: "Producto no encontrado" }, { status: 404 });
     }
 
-    // 📂 GUARDAR ARCHIVO
     let fileUrl: string | null = null;
     if (file) {
       const bytes = await file.arrayBuffer();
@@ -47,20 +49,18 @@ export async function POST(req: Request) {
       fileUrl = `/uploads/${fileName}`;
     }
 
-    // 💾 INSERT SOLICITUD
     const nueva = await db.insert(solicitudes).values({
       userId,
       productId,
-      talle,
-      pie,
+      talle,        
+      tipoMedida,    
       medicoNombre: medicoNombre || null,
       notas: notas || null,
-      precioProducto: product.price,   // <- aquí guardamos el precio real
-      precioTotal: product.price,      // opcional, puede actualizarse después con envío
+      precioProducto: product.price,
+      precioTotal: product.price,
       status: "solicitud_enviada",
     }).returning();
 
-    // 📎 INSERT ARCHIVO EN TABLA RELACIONADA
     if (fileUrl) {
       await db.insert(solicitudFiles).values({
         id: crypto.randomUUID(),
