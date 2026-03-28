@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { solicitudes, products, solicitudFiles } from "@/lib/db/schema";
+import { solicitudes, solicitudFiles, users } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { uploadFile } from "@/lib/cloudinary";
 
@@ -9,6 +9,30 @@ export async function POST(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) return Response.json({ error: "No autorizado" }, { status: 401 });
+
+    // Verificar que el usuario existe en la DB y tiene perfil completo
+    const user = await db.query.users.findFirst({
+      where: (u, { eq }) => eq(u.id, userId),
+      with: { addresses: true },
+    });
+
+    if (!user) {
+      return Response.json({
+        error: "Debes completar tu perfil antes de enviar una solicitud.",
+      }, { status: 403 });
+    }
+
+    if (!user.name || !user.lastName || !user.phone) {
+      return Response.json({
+        error: "Debés completar tu perfil (nombre, apellido y teléfono) antes de realizar una solicitud.",
+      }, { status: 403 });
+    }
+
+    if (!user.addresses || user.addresses.length === 0) {
+      return Response.json({
+        error: "Debés agregar una dirección de entrega en tu perfil antes de realizar una solicitud.",
+      }, { status: 403 });
+    }
 
     const formData = await req.formData();
 
@@ -38,7 +62,7 @@ export async function POST(req: Request) {
       fileUrl = await uploadFile(buffer, file.name, "condoleo/ordenes-medicas");
     }
 
-    const nueva = await db.insert(solicitudes).values({
+    const [nueva] = await db.insert(solicitudes).values({
       userId,
       productId,
       talle,
@@ -53,13 +77,13 @@ export async function POST(req: Request) {
     if (fileUrl) {
       await db.insert(solicitudFiles).values({
         id: crypto.randomUUID(),
-        solicitudId: nueva[0].id,
+        solicitudId: nueva.id,
         url: fileUrl,
         type: file?.name || null,
       });
     }
 
-    return Response.json({ success: true, solicitud: nueva[0] });
+    return Response.json({ success: true, solicitud: nueva });
   } catch (error) {
     console.error("❌ ERROR API SOLICITUDES:", error);
     return Response.json({ error: "Error interno", detalle: String(error) }, { status: 500 });

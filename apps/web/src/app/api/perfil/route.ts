@@ -1,20 +1,44 @@
 // app/api/perfil/route.ts
 import { db } from "@/lib/db";
 import { users, addresses } from "@/lib/db/schema";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 
 export const runtime = "nodejs";
 
+// Helper: asegura que el usuario exista en la DB
+async function ensureUserExists(userId: string) {
+  const existing = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+
+  if (!existing) {
+    const clerkUser = await currentUser();
+    const email = clerkUser?.emailAddresses[0]?.emailAddress;
+    const phone = clerkUser?.phoneNumbers[0]?.phoneNumber ?? null;
+
+    if (!email) throw new Error("Sin email en Clerk");
+
+    await db.insert(users).values({
+      id: userId,
+      email,
+      phone,
+      role: "customer",
+    });
+  }
+}
+
 // ================= GET =================
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const { userId } = await auth();
     if (!userId) {
       return new Response(JSON.stringify({ error: "No autorizado" }), { status: 401 });
     }
 
-    // Traemos datos del usuario
+    // Si el usuario no existe en la DB, lo creamos
+    await ensureUserExists(userId);
+
     const userProfile = await db.query.users.findFirst({
       where: eq(users.id, userId),
       columns: {
@@ -26,7 +50,6 @@ export async function GET(req: Request) {
       },
     });
 
-    // Traemos la dirección por defecto (si existe)
     const address = await db.query.addresses.findFirst({
       where: and(eq(addresses.userId, userId), eq(addresses.isDefault, true)),
       columns: {
@@ -57,9 +80,11 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: "No autorizado" }), { status: 401 });
     }
 
+    // Si el usuario no existe en la DB, lo creamos
+    await ensureUserExists(userId);
+
     const body = await req.json();
 
-    // Validamos y normalizamos los campos
     const name = body.name ?? "";
     const lastName = body.lastName ?? "";
     const phone = body.phone ?? "";
@@ -71,25 +96,20 @@ export async function POST(req: Request) {
     const province = body.province ?? "";
     const postalCode = body.postalCode ?? "";
 
-    // 1️⃣ Actualizamos los datos del usuario
-    const updateUserResult = await db.update(users)
+    await db.update(users)
       .set({ name, lastName, phone, dni })
       .where(eq(users.id, userId));
 
-
-    // 2️⃣ Actualizamos o creamos la dirección por defecto
     const existingAddress = await db.query.addresses.findFirst({
       where: and(eq(addresses.userId, userId), eq(addresses.isDefault, true)),
     });
 
     if (existingAddress) {
-      const updateAddressResult = await db.update(addresses)
+      await db.update(addresses)
         .set({ street, number, floor, city, province, postalCode })
         .where(eq(addresses.id, existingAddress.id));
-
-
     } else {
-      const insertAddressResult = await db.insert(addresses).values({
+      await db.insert(addresses).values({
         userId,
         street,
         number,
@@ -99,8 +119,6 @@ export async function POST(req: Request) {
         postalCode,
         isDefault: true,
       });
-
-
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
