@@ -8,7 +8,6 @@ type Solicitud = {
   id: string;
   status: string;
   talle: string;
-  pie: string;
   medicoNombre?: string;
   notas?: string;
   precioProducto?: string;

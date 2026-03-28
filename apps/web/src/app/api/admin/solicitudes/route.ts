@@ -4,11 +4,9 @@ import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return Response.json({ error: "No autorizado" }, { status: 401 });
-    }
+    const { sessionClaims } = await auth();
+const role = (sessionClaims?.metadata as any)?.role;
+if (role !== "admin") return Response.json({ error: "No autorizado" }, { status: 401 });
 
     const data = await db.query.solicitudes.findMany({
       with: {

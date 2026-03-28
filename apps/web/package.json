@@ -11,6 +11,7 @@
   "dependencies": {
     "@clerk/nextjs": "^7.0.4",
     "@neondatabase/serverless": "^1.0.2",
+    "cloudinary": "^2.9.0",
     "drizzle-orm": "^0.45.1",
     "mercadopago": "^2.12.0",
     "next": "16.1.6",

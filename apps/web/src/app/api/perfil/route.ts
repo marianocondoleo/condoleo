@@ -76,7 +76,6 @@ export async function POST(req: Request) {
       .set({ name, lastName, phone, dni })
       .where(eq(users.id, userId));
 
-    console.log("✅ Usuario actualizado:", updateUserResult);
 
     // 2️⃣ Actualizamos o creamos la dirección por defecto
     const existingAddress = await db.query.addresses.findFirst({
@@ -88,7 +87,7 @@ export async function POST(req: Request) {
         .set({ street, number, floor, city, province, postalCode })
         .where(eq(addresses.id, existingAddress.id));
 
-      console.log("✅ Dirección actualizada:", updateAddressResult);
+
     } else {
       const insertAddressResult = await db.insert(addresses).values({
         userId,
@@ -101,7 +100,7 @@ export async function POST(req: Request) {
         isDefault: true,
       });
 
-      console.log("✅ Dirección creada:", insertAddressResult);
+
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });

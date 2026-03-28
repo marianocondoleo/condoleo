@@ -35,7 +35,7 @@ export default function Solicitar() {
 
   // Traer productos
   useEffect(() => {
-    fetch("/api/products")
+    fetch("/api/solicitudes/products")
       .then(res => res.json())
       .then(setProducts);
   }, []);
@@ -68,7 +68,7 @@ export default function Solicitar() {
 
     setLoading(true);
 
-     console.log("FORM STATE:", form); 
+    
 
     const body = new FormData();
     body.append("productId", form.productId);
