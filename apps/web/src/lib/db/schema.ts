@@ -161,6 +161,7 @@ export const solicitudes = pgTable("solicitudes", {
 
   // ADMIN
   adminNotes: text("admin_notes"),
+  mensajeCliente: text("mensaje_cliente"),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
