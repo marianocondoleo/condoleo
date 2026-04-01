@@ -5,6 +5,9 @@ import { eq } from "drizzle-orm";
 import { resend } from "@/lib/email";
 import { emailSolicitudPago } from "@/lib/emails/solicitud-pago";
 import { emailSolicitudCancelada } from "@/lib/emails/solicitud-cancelada";
+import { emailEnProduccion } from "@/lib/emails/solicitud-en-produccion";
+import { emailDespachada } from "@/lib/emails/solicitud-despachada";
+import { emailRecibida } from "@/lib/emails/solicitud-recibida";
 
 const VALID_STATUSES = [
   "solicitud_enviada",
@@ -16,6 +19,16 @@ const VALID_STATUSES = [
 ];
 
 const EMAIL_DESTINO = "mdcondoleo@gmail.com"; // ← temporal hasta tener dominio
+
+async function sendEmail(subject: string, html: string) {
+  const result = await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL!,
+    to: EMAIL_DESTINO,
+    subject,
+    html,
+  });
+  console.log("RESEND result:", JSON.stringify(result));
+}
 
 export async function PATCH(
   req: Request,
@@ -38,17 +51,13 @@ export async function PATCH(
 
     const solicitud = await db.query.solicitudes.findFirst({
       where: eq(solicitudes.id, id),
-      with: {
-        user: true,
-        product: true,
-      },
+      with: { user: true, product: true },
     });
 
     if (!solicitud) {
       return Response.json({ error: "Solicitud no encontrada" }, { status: 404 });
     }
 
-    // Calcular total si viene precioEnvio
     const precioEnvioNum = precioEnvio !== undefined ? parseFloat(precioEnvio.toString()) : null;
     const precioTotalCalculado =
       precioEnvioNum !== null
@@ -73,10 +82,13 @@ export async function PATCH(
     const pacienteNombre = `${solicitud.user?.name || ""} ${solicitud.user?.lastName || ""}`.trim() || "Paciente";
     const pacienteEmail = solicitud.user?.email;
     const producto = solicitud.product?.name || "Producto";
-    const monto = updated.precioTotal || solicitud.precioTotal || "0"; // ← usa el total actualizado
+
+    if (!pacienteEmail) {
+      return Response.json(updated);
+    }
 
     // ── Email: Solicitar pago ──────────────────────────────
-    if (status === "aprobada_pendiente_pago" && pacienteEmail) {
+    if (status === "aprobada_pendiente_pago") {
       const config = await db.query.paymentConfig.findFirst({
         where: eq(paymentConfig.isActive, true),
       });
@@ -98,32 +110,32 @@ export async function PATCH(
             titular: config.titular || "",
           },
         });
-
-        const result = await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL!,
-          to: EMAIL_DESTINO,
-          subject: template.subject,
-          html: template.html,
-        });
-        console.log("RESEND pago:", JSON.stringify(result));
+        await sendEmail(template.subject, template.html);
       }
     }
 
-    // ── Email: Cancelación ────────────────────────────────
-    if (status === "cancelada" && pacienteEmail) {
-      const template = emailSolicitudCancelada({
-        pacienteNombre,
-        producto,
-        mensaje: mensajeCliente,
-      });
+    // ── Email: En producción ───────────────────────────────
+    if (status === "en_produccion") {
+      const template = emailEnProduccion({ pacienteNombre, producto, mensaje: mensajeCliente });
+      await sendEmail(template.subject, template.html);
+    }
 
-      const result = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL!,
-        to: EMAIL_DESTINO,
-        subject: template.subject,
-        html: template.html,
-      });
-      console.log("RESEND cancelación:", JSON.stringify(result));
+    // ── Email: Despachado ──────────────────────────────────
+    if (status === "despachado") {
+      const template = emailDespachada({ pacienteNombre, producto, mensaje: mensajeCliente });
+      await sendEmail(template.subject, template.html);
+    }
+
+    // ── Email: Recibida ────────────────────────────────────
+    if (status === "recibida") {
+      const template = emailRecibida({ pacienteNombre, producto, mensaje: mensajeCliente });
+      await sendEmail(template.subject, template.html);
+    }
+
+    // ── Email: Cancelación ─────────────────────────────────
+    if (status === "cancelada") {
+      const template = emailSolicitudCancelada({ pacienteNombre, producto, mensaje: mensajeCliente });
+      await sendEmail(template.subject, template.html);
     }
 
     return Response.json(updated);
