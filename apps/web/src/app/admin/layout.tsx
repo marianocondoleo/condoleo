@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: Props) {
     { href: "/admin/", label: "Dashboard", emoji: "👨‍💻" },
     { href: "/admin/solicitudes", label: "Solicitudes", emoji: "📋" },
     { href: "/admin/productos", label: "Productos", emoji: "📦" },
-    { href: "/admin/metodos", label: "Métodos de Pago", emoji: "💳" },
+    { href: "/admin/metodos-pago", label: "Métodos de Pago", emoji: "💳" },
     { href: "/admin/configuracion", label: "Configuración", emoji: "⚙️" },
   ];
 
