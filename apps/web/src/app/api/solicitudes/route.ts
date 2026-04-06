@@ -2,11 +2,29 @@ import { db } from "@/lib/db";
 import { solicitudes, solicitudFiles, users } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { uploadFile } from "@/lib/cloudinary";
+import { crearSolicitudSchema, mapearErroresZod } from "@/lib/validations";
+import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 
+// Validaciones de archivo
+const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 export async function POST(req: Request) {
   try {
+    // Rate limiting: 10 solicitudes por hora por IP
+    const { allowed, response: rateLimitResponse } = await checkRateLimit(req, {
+      maxRequests: 10,
+      windowSeconds: 3600,
+    });
+
+    if (!allowed) {
+      return rateLimitResponse!;
+    }
+
     const { userId } = await auth();
     if (!userId) return Response.json({ error: "No autorizado" }, { status: 401 });
 
@@ -43,8 +61,41 @@ export async function POST(req: Request) {
     const notas = formData.get("notas") as string;
     const file = formData.get("file") as File | null;
 
-    if (!productId || !talle || !tipoMedida) {
-      return Response.json({ error: "Faltan datos obligatorios" }, { status: 400 });
+    // Validar datos obligatorios con Zod
+    try {
+      crearSolicitudSchema.parse({
+        productoId: productId,
+        talle,
+        tipoMedida,
+        medicoNombre,
+        observaciones: notas,
+      });
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const errores = mapearErroresZod(validationError);
+        return Response.json(
+          { error: "Validación fallida", errors: errores },
+          { status: 400 }
+        );
+      }
+      throw validationError;
+    }
+
+    // Validar archivo si está presente
+    if (file) {
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        return Response.json(
+          { error: "Tipo de archivo no permitido. Solo PDF, JPEG, PNG y WEBP." },
+          { status: 400 }
+        );
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        return Response.json(
+          { error: "El archivo no puede exceder 5MB." },
+          { status: 400 }
+        );
+      }
     }
 
     const product = await db.query.products.findFirst({
@@ -83,9 +134,9 @@ export async function POST(req: Request) {
       });
     }
 
+    logger.info("api/solicitudes POST", `Nueva solicitud creada: ${nueva.id}`, { userId, productId });
     return Response.json({ success: true, solicitud: nueva });
   } catch (error) {
-    console.error("❌ ERROR API SOLICITUDES:", error);
-    return Response.json({ error: "Error interno", detalle: String(error) }, { status: 500 });
+    return logger.getErrorResponse("api/solicitudes POST", error);
   }
 }

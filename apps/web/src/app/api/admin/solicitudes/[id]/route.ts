@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { solicitudes, paymentConfig } from "@/lib/db/schema";
+import { solicitudes, solicitudStatusHistory, paymentConfig } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { resend } from "@/lib/email";
@@ -8,6 +8,9 @@ import { emailSolicitudCancelada } from "@/lib/emails/solicitud-cancelada";
 import { emailEnProduccion } from "@/lib/emails/solicitud-en-produccion";
 import { emailDespachada } from "@/lib/emails/solicitud-despachada";
 import { emailRecibida } from "@/lib/emails/solicitud-recibida";
+import { actualizarSolicitudStatusSchema, mapearErroresZod } from "@/lib/validations";
+import { logger } from "@/lib/logger";
+import { z } from "zod";
 
 const VALID_STATUSES = [
   "solicitud_enviada",
@@ -18,16 +21,20 @@ const VALID_STATUSES = [
   "cancelada",
 ];
 
-const EMAIL_DESTINO = "mdcondoleo@gmail.com"; // ← temporal hasta tener dominio
+const EMAIL_DESTINO = process.env.ADMIN_EMAIL || "admin@condoleo.com";
 
 async function sendEmail(subject: string, html: string) {
-  const result = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL!,
-    to: EMAIL_DESTINO,
-    subject,
-    html,
-  });
-  console.log("RESEND result:", JSON.stringify(result));
+  try {
+    const result = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL!,
+      to: EMAIL_DESTINO,
+      subject,
+      html,
+    });
+    logger.info("sendEmail", `Email enviado: ${subject}`, { result });
+  } catch (error) {
+    logger.error("sendEmail", error);
+  }
 }
 
 export async function PATCH(
@@ -35,7 +42,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { sessionClaims } = await auth();
+    const { sessionClaims, userId } = await auth();
     const role = (sessionClaims?.metadata as { role?: string })?.role;
     if (role !== "admin") {
       return Response.json({ error: "No autorizado" }, { status: 401 });
@@ -43,10 +50,20 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await req.json();
-    const { status, mensajeCliente, adminNotes, precioEnvio } = body;
+    const { status, mensajeCliente, adminNotes, precioEnvio, precioProducto, precioTotal } = body;
 
-    if (!status || !VALID_STATUSES.includes(status)) {
-      return Response.json({ error: "Status inválido" }, { status: 400 });
+    // Validar con Zod
+    try {
+      actualizarSolicitudStatusSchema.parse({ status, precioEnvio, precioProducto, precioTotal });
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const errores = mapearErroresZod(validationError);
+        return Response.json(
+          { error: "Validación fallida", errors: errores },
+          { status: 400 }
+        );
+      }
+      throw validationError;
     }
 
     const solicitud = await db.query.solicitudes.findFirst({
@@ -58,7 +75,7 @@ export async function PATCH(
       return Response.json({ error: "Solicitud no encontrada" }, { status: 404 });
     }
 
-    const precioEnvioNum = precioEnvio !== undefined ? parseFloat(precioEnvio.toString()) : null;
+    const precioEnvioNum = precioEnvio !== undefined && precioEnvio !== "" ? parseFloat(precioEnvio.toString()) : null;
     const precioTotalCalculado =
       precioEnvioNum !== null
         ? (parseFloat(solicitud.precioProducto || "0") + precioEnvioNum).toFixed(2)
@@ -79,6 +96,17 @@ export async function PATCH(
       .where(eq(solicitudes.id, id))
       .returning();
 
+    // Registrar en historial de auditoría
+    if (userId) {
+      await db.insert(solicitudStatusHistory).values({
+        id: crypto.randomUUID(),
+        solicitudId: id,
+        status,
+        changedBy: userId,
+        timestamp: new Date(),
+      });
+    }
+
     const pacienteNombre = `${solicitud.user?.name || ""} ${solicitud.user?.lastName || ""}`.trim() || "Paciente";
     const pacienteEmail = solicitud.user?.email;
     const producto = solicitud.product?.name || "Producto";
@@ -94,7 +122,7 @@ export async function PATCH(
       });
 
       if (!config) {
-        console.error("No hay configuración de pago activa");
+        logger.warn("sendEmail", "No hay configuración de pago activa");
       } else {
         const template = emailSolicitudPago({
           pacienteNombre,
@@ -138,9 +166,14 @@ export async function PATCH(
       await sendEmail(template.subject, template.html);
     }
 
+    logger.info(
+      "admin/solicitudes PATCH",
+      `Solicitud actualizada: ${id}`,
+      { status, usuario: userId }
+    );
+
     return Response.json(updated);
   } catch (error) {
-    console.error("ERROR PATCH solicitud:", error);
-    return Response.json({ error: "Error interno" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/solicitudes PATCH", error);
   }
 }

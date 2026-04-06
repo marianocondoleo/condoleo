@@ -3,6 +3,10 @@ import { db } from "@/lib/db";
 import { users, addresses } from "@/lib/db/schema";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
+import { perfilSchema, mapearErroresZod } from "@/lib/validations";
+import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 
@@ -64,17 +68,23 @@ export async function GET() {
 
     return new Response(JSON.stringify({ user: userProfile, address }), { status: 200 });
   } catch (error) {
-    console.error("❌ ERROR API PERFIL GET:", error);
-    return new Response(
-      JSON.stringify({ error: "Error interno", detalle: String(error) }),
-      { status: 500 }
-    );
+    return logger.getErrorResponse("api/perfil GET", error);
   }
 }
 
 // ================= POST =================
 export async function POST(req: Request) {
   try {
+    // Rate limiting: 30 actualización de perfil por hora por IP
+    const { allowed, response: rateLimitResponse } = await checkRateLimit(req, {
+      maxRequests: 30,
+      windowSeconds: 3600,
+    });
+
+    if (!allowed) {
+      return rateLimitResponse!;
+    }
+
     const { userId } = await auth();
     if (!userId) {
       return new Response(JSON.stringify({ error: "No autorizado" }), { status: 401 });
@@ -84,6 +94,26 @@ export async function POST(req: Request) {
     await ensureUserExists(userId);
 
     const body = await req.json();
+
+    // Validar datos con Zod
+    try {
+      perfilSchema.parse({
+        nombre: body.name,
+        email: body.email,
+        telefono: body.phone,
+        dni: body.dni,
+        direccion: body.street,
+      });
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const errores = mapearErroresZod(validationError);
+        return new Response(
+          JSON.stringify({ error: "Validación fallida", errors: errores }),
+          { status: 400 }
+        );
+      }
+      throw validationError;
+    }
 
     const name = body.name ?? "";
     const lastName = body.lastName ?? "";
@@ -123,7 +153,6 @@ export async function POST(req: Request) {
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
-    console.error("❌ ERROR API PERFIL POST:", error);
-    return new Response(JSON.stringify({ success: false, error: String(error) }), { status: 500 });
+    return logger.getErrorResponse("api/perfil POST", error);
   }
 }
