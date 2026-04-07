@@ -10,6 +10,8 @@ import { z } from "zod";
 export const runtime = "nodejs";
 
 // Validaciones de archivo - Solo imágenes permitidas
+// IMPORTANTE: El campo es "Orden médica" pero solo aceptamos imágenes para evitar problemas de seguridad
+// Los PDFs y otros documentos no se pueden servir directamente desde Cloudinary por restricciones de CORS/auth
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 

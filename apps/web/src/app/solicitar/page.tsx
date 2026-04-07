@@ -265,6 +265,16 @@ export default function Solicitar() {
               />
             </div>
 
+            {/* LEYENDA INFORMATIVA */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-2">
+              <p className="text-xs text-white/40 uppercase tracking-widest">
+                ℹ Importante
+              </p>
+              <p className="text-sm text-white/70 leading-relaxed">
+                Luego de validar tu solicitud, nos pondremos en contacto para indicarte el precio de envío y el total a pagar. Recibirás un email con los detalles y las instrucciones de pago.
+              </p>
+            </div>
+
             {/* BOTON FINAL */}
             <button
               onClick={handleSubmit}

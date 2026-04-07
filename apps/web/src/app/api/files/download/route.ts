@@ -50,8 +50,9 @@ export async function GET(req: Request) {
         fileUrl: fileUrl.substring(0, 100),
         message: String(fetchError),
       });
+      // NO exponer detalles técnicos al cliente
       return Response.json(
-        { error: "Error al conectar con Cloudinary", details: String(fetchError) },
+        { error: "Error al obtener el archivo" },
         { status: 502 }
       );
     }
@@ -59,14 +60,14 @@ export async function GET(req: Request) {
     if (!response.ok) {
       logger.error("files/download - Bad response", new Error(`Status ${response.status}`), {
         responseStatus: response.status,
-        fileUrl: fileUrl.substring(0, 300), // aumentado para debugging
+        fileUrl: fileUrl.substring(0, 300), // logging seguro (truncado)
         contentType: response.headers.get("content-type"),
       });
+      // NO exponer la URL en la respuesta al cliente
       return Response.json(
         {
           error: "No se pudo obtener el archivo",
-          details: `Status ${response.status} from Cloudinary`,
-          fileUrl: fileUrl, // URL completa en respuesta
+          details: `Error ${response.status} al acceder al archivo`,
         },
         { status: response.status }
       );
@@ -112,8 +113,9 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     logger.error("files/download - Unhandled error", error);
+    // NO exponer detalles de error al cliente
     return Response.json(
-      { error: "Error al descargar archivo", details: String(error) },
+      { error: "Error al descargar archivo" },
       { status: 500 }
     );
   }
