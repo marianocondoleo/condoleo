@@ -2,240 +2,282 @@
 
 Plataforma médica integral para gestión de solicitudes de órtesis y prótesis.
 
-## Tecnología
+**Estado:** Producción  
+**Tipo:** SaaS - Plataforma web responsiva  
 
-**Stack:**
+---
 
-- Next.js 16.1 + React 19 (Web)
-- Expo React Native (Mobile - scaffolding inicial)
-- PostgreSQL (Neon)
-- TypeScript
-- Turbo (monorepo)
+## 🎯 Características Principales
 
-**Servicios:**
+- **Gestión de Solicitudes**: Pacientes solicitan órtesis/prótesis, admins aprueban y definen precios
+- **Autenticación Segura**: Integración con Clerk para auth multi-factor
+- **Gestión de Pagos**: Transferencias bancarias con confirmación por email
+- **Seguimiento de Envíos**: Integración con Andreani para logística
+- **Panel Administrativo**: Dashboard para gestionar solicitudes, productos y configuración
+- **Notificaciones por Email**: Cambios de estado automáticos vía Resend
 
-- Clerk (autenticación)
-- Cloudinary (almacenamiento)
-- Resend (email)
-- Upstash (rate limiting)
-- Andreani (envíos)
+---
 
-## Quick Start
+## 🏗️ Arquitectura
 
-### 1. Clonar y instalar
+**Stack Tecnológico:**
+
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | Next.js 16.1 + React 19 + TypeScript |
+| Backend | Next.js API Routes (Node.js) |
+| Base de Datos | PostgreSQL (Neon Serverless) |
+| Autenticación | Clerk |
+| Storage | Cloudinary (imágenes) |
+| Email | Resend |
+| Rate Limiting | Upstash Redis |
+| Envíos | Andreani |
+| Monorepo | Turbo |
+
+**Apps del Workspace:**
+- `apps/web` - Plataforma principal (producción)
+- `apps/mobile` - React Native Expo (scaffolding para futuro)
+
+---
+
+## 🚀 Quick Start
+
+### Requisitos
+- Node.js 18+
+- npm o yarn
+- Git
+
+### 1️⃣ Clonar e instalar
 
 ```bash
-git clone <repo>
+git clone https://github.com/tu-org/condoleo.git
 cd condoleo
 npm install
 ```
 
-### 2. Configurar variables de entorno
+### 2️⃣ Configurar variables de entorno
 
 ```bash
 cp .env.example apps/web/.env.local
 ```
 
-Edita `apps/web/.env.local` y rellena:
+Edita `apps/web/.env.local` y rellena cada variable:
 
-- `DATABASE_URL` → [Neon](https://neon.tech)
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` → [Clerk](https://clerk.com)
-- `CLERK_SECRET_KEY` → [Clerk](https://clerk.com)
-- `CLOUDINARY_*` → [Cloudinary](https://cloudinary.com)
-- `RESEND_API_KEY` → [Resend](https://resend.com)
-- `UPSTASH_REDIS_*` → [Upstash](https://upstash.com) (opcional)
+```env
+# Database (Neon)
+DATABASE_URL=postgresql://...
 
-Ver `.env.example` para todos los detalles.
+# Clerk (Auth)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+CLERK_WEBHOOK_SECRET=whsec_...
 
-### 3. Setup base de datos
+# Cloudinary (Images)
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+# Resend (Email)
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=noreply@condoleo.com
+ADMIN_EMAIL=admin@condoleo.com
+
+# Upstash Redis (Rate Limiting - opcional)
+UPSTASH_REDIS_REST_URL=https://...
+UPSTASH_REDIS_REST_TOKEN=...
+```
+
+Ver `.env.example` para detalles completos → [.env.example](.env.example)
+
+### 3️⃣ Setup Base de Datos
 
 ```bash
 cd apps/web
 npm run db:migrate
 ```
 
-### 4. Correr desarrollo
+### 4️⃣ Correr en Desarrollo
 
 ```bash
 npm run dev
 ```
 
 - **Web**: http://localhost:3000
-- **Mobile**: No incluida en desarrollo actual
+- **API**: http://localhost:3000/api
+- **Clerk**: Panel de autenticación en signIn/signUp
 
-## Estructura
+---
+
+## 📁 Estructura del Proyecto
 
 ```
 condoleo/
 ├── apps/
-│   ├── web/           # Next.js principal (producción)
-│   └── mobile/        # Expo (scaffolding, no en deploy)
+│   ├── web/                          # Plataforma Next.js (producción)
+│   │   ├── src/
+│   │   │   ├── app/                 # Next.js app directory
+│   │   │   │   ├── admin/           # Panel administrativo
+│   │   │   │   ├── api/             # API routes
+│   │   │   │   ├── auth-redirect/
+│   │   │   │   ├── mis-solicitudes/ # Panel del paciente
+│   │   │   │   ├── perfil/
+│   │   │   │   ├── productos/
+│   │   │   │   └── solicitar/       # Crear solicitud
+│   │   │   ├── components/          # Componentes React
+│   │   │   └── lib/                 # Utilidades
+│   │   │       ├── db/              # Drizzle ORM
+│   │   │       ├── cloudinary.ts    # Upload a Cloudinary
+│   │   │       ├── email.ts         # Plantillas email
+│   │   │       ├── logger.ts        # Logging
+│   │   │       └── rateLimit.ts     # Rate limiting
+│   │   ├── drizzle/                 # Migrations SQL
+│   │   └── .env.example             # Variables de entorno
+│   └── mobile/                       # React Native Expo (scaffolding)
+│
 ├── packages/
-│   ├── ui/            # Componentes compartidos
-│   ├── eslint-config/
-│   └── typescript-config/
-├── .env.example       # Variables de entorno (documentadas)
-└── turbo.json
+│   ├── ui/                          # Componentes reutilizables
+│   ├── eslint-config/               # Configuración ESLint
+│   └── typescript-config/           # Configuración TypeScript
+│
+├── .env.example                     # Variables de entorno (root)
+├── turbo.json                       # Configuración Turbo
+└── package.json
 ```
 
-## Desarrollo Web
+---
 
+## 💻 Desarrollo
+
+### Iniciar servidor con todas las herramientas
+
+**Terminal 1: Dev Server (con hot reload)**
 ```bash
-# Terminal 1: Dev server
 npm run dev
+```
 
-# Terminal 2: Base de datos
-cd apps/web && npm run db:push
-
-# Terminal 3: Type checking
+**Terminal 2: Type Checking (watch mode)**
+```bash
 npm run type-check
+```
 
-# Lint
+**Terminal 3: Linting**
+```bash
 npm run lint
 ```
 
-## Deployment
+**Terminal 4: Base de datos (push schema)**
+```bash
+cd apps/web && npm run db:push
+```
+
+### Comandos Disponibles
+
+```bash
+# Build
+npm run build              # Build web + packages
+
+# Development
+npm run dev                # Dev server
+npm run type-check         # TypeScript check
+
+# Linting
+npm run lint               # ESLint en todos los apps
+npm run format             # Prettier format
+
+# Database
+npm run db:migrate         # Ejecutar migrations
+npm run db:push            # Push schema a DB
+npm run db:studio          # Drizzle Studio (UI)
+```
+
+---
+
+## 🚢 Deployment
 
 ### Production Build
 
 ```bash
+# Build todo el monorepo
 npm run build
+
+# Partir servidor (requiere .env.local)
 npm run start
 ```
 
-### Variablespara producción
+### Configurar en Hosting (Vercel, Railway, etc.)
 
-Configurar en el hosting:
+Establece estas variables de entorno:
 
-- `DATABASE_URL`
-- `CLERK_SECRET_KEY`
-- `CLOUDINARY_API_*`
-- `RESEND_API_KEY`
-- `UPSTASH_REDIS_*`
-- `ADMIN_EMAIL`
-
-## App Mobile
-
-⚠️ **Actualmente en scaffolding inicial**
-
-La app mobile (`apps/mobile`) es solo estructura base:
-
-- Sin pantallas implementadas
-- Sin integración con API
-- No incluida en deploy actual
-
-Ver [apps/mobile/README_STATUS.md](apps/mobile/README_STATUS.md) para detalles.
-
-## Licencia
-
-Privado - Condoleo
-yarn dlx turbo build
-pnpm exec turbo build
-
-````
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-````
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```env
+DATABASE_URL=postgresql://user:pass@host/db
+CLERK_SECRET_KEY=sk_prod_...
+CLERK_WEBHOOK_SECRET=whsec_...
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+RESEND_API_KEY=re_prod_...
+RESEND_FROM_EMAIL=noreply@condoleo.com
+ADMIN_EMAIL=admin@condoleo.com
+UPSTASH_REDIS_REST_URL=https://...
+UPSTASH_REDIS_REST_TOKEN=...
+NODE_ENV=production
 ```
 
-### Develop
+### Checklist de Deploy
 
-To develop all apps and packages, run the following command:
+- [ ] Variables de entorno configuradas
+- [ ] Database migrada (`npm run db:migrate`)
+- [ ] Build pasando (`npm run build`)
+- [ ] Tests pasando (si existen)
+- [ ] Clerk webhooks configurados
+- [ ] Dominios DNS apuntando correctamente
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+---
 
-```sh
-cd my-turborepo
-turbo dev
-```
+## 📱 App Mobile
 
-Without global `turbo`, use your package manager:
+🚧 **Estado: Scaffolding Inicial**
 
-```sh
-cd my-turborepo
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+La app mobile (`apps/mobile`) es una estructura base de Expo. Actualmente no está incluida en deployment.
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Para futuro desarrollo de la app mobile:
+- Integrar autenticación Clerk
+- Conectar a API de `apps/web`
+- Compartir tipos TypeScript
+- Mantener consistencia visual
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Ver [apps/mobile/README_STATUS.md](apps/mobile/README_STATUS.md)
 
-```sh
-turbo dev --filter=web
-```
+---
 
-Without global `turbo`:
+## 🔒 Seguridad
 
-```sh
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+- ✅ Validación en servidor y cliente
+- ✅ Rate limiting con Upstash Redis
+- ✅ Webhook verification de Clerk
+- ✅ Variables de entorno segregadas
+- ✅ Headers de seguridad (CSP, X-Frame-Options, etc.)
+- ✅ Autenticación mediante Clerk (MFA ready)
+- ✅ Proxy para servir archivos (evita CORS issues)
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## 📊 Monitoreo
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+Recomendado implementar:
+- [Sentry](https://sentry.io) para error tracking
+- [Better Stack](https://betterstack.com) para logging
+- [Vercel Analytics](https://vercel.com/analytics) para performance
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## 📝 Licencia
 
-```sh
-cd my-turborepo
-turbo login
-```
+Propietario - CONDOLEO (Privado)
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+## 🤝 Contacto & Support
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+- **Email**: ortopediafoc@gmail.com
+- **Docs**: Ver [.env.example](.env.example) para setup detallado
