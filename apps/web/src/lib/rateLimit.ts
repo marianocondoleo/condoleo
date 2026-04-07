@@ -6,6 +6,7 @@
 
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { env } from "./env"; // ✅ Importar para validar en startup
 
 type RateLimitResult = {
   success: boolean;
@@ -64,11 +65,11 @@ const inMemoryLimiter = new InMemoryRateLimiter();
 // Instancia de Upstash Redis (si está configurado)
 let upstashLimiter: Ratelimit | null = null;
 
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) {
   try {
     const redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      url: env.UPSTASH_REDIS_REST_URL,
+      token: env.UPSTASH_REDIS_REST_TOKEN,
     });
 
     upstashLimiter = new Ratelimit({

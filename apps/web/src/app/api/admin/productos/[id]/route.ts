@@ -6,6 +6,8 @@ import { products } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { logger } from "@/lib/logger";
 import { requireAdmin } from "@/lib/auth";
+import { adminProductoUpdateSchema } from "@/lib/validations"; // ✅ Importar schema
+import { z } from "zod"; // ✅ Para manejar ZodError
 
 // PUT
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -16,11 +18,40 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;  // ← await
     const body = await req.json();
-    const { name, sku, categoryId, price, description, images, isActive } = body;
+    
+    // ✅ CRÍTICO - Validar con Zod antes de actualizar
+    let validatedData;
+    try {
+      validatedData = adminProductoUpdateSchema.parse(body);
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json(
+          { 
+            error: "Datos inválidos",
+            details: validationError.issues.map(e => ({
+              field: e.path.join("."),
+              message: e.message
+            }))
+          },
+          { status: 400 }
+        );
+      }
+      throw validationError;
+    }
+
+    // Construir objeto de actualización solo con campos validados
+    const updateData: any = {};
+    if (validatedData.name !== undefined) updateData.name = validatedData.name;
+    if (validatedData.sku !== undefined) updateData.sku = validatedData.sku;
+    if (validatedData.categoryId !== undefined) updateData.categoryId = validatedData.categoryId || null;
+    if (validatedData.price !== undefined) updateData.price = validatedData.price;
+    if (validatedData.description !== undefined) updateData.description = validatedData.description || null;
+    if (validatedData.images !== undefined) updateData.images = validatedData.images;
+    if (validatedData.isActive !== undefined) updateData.isActive = validatedData.isActive;
 
     const [updated] = await db
       .update(products)
-      .set({ name, sku, categoryId, price, description, images, isActive })
+      .set(updateData)
       .where(eq(products.id, id))  // ← id en lugar de params.id
       .returning();
 

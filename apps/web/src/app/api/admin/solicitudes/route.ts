@@ -3,6 +3,7 @@ import { solicitudes } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { logger } from "@/lib/logger";
 import { getProxyUrl } from "@/lib/cloudinary";
+import { sql } from "drizzle-orm"; // ✅ Import para count
 
 export const runtime = "nodejs";
 
@@ -20,27 +21,30 @@ export async function GET(req: Request) {
     const limit = Math.max(1, Math.min(100, parseInt(url.searchParams.get("limit") || "20")));
     const offset = (page - 1) * limit;
 
-    // Obtener solicitudes con paginación
-    const data = await db.query.solicitudes.findMany({
-      with: {
-        product: true,
-        user: {
-          with: {
-            addresses: true,
+    // ✅ FIX 5: Ejecutar ambas queries en paralelo (no secuencial)
+    const [data, countResult] = await Promise.all([
+      db.query.solicitudes.findMany({
+        with: {
+          product: true,
+          user: {
+            with: {
+              addresses: true,
+            },
           },
+          files: true,
         },
-        files: true,
-      },
-      orderBy: (s, { desc }) => [desc(s.createdAt)],
-      limit,
-      offset,
-    });
+        orderBy: (s, { desc }) => [desc(s.createdAt)],
+        limit,
+        offset,
+      }),
+      // ✅ Contar de forma eficiente con COUNT(*) en lugar de SELECT ALL
+      db
+        .select({ count: sql<number>`cast(count(*) as integer)` })
+        .from(solicitudes)
+        .then((result) => result[0]?.count || 0),
+    ]);
 
-    // Contar total de registros
-    const allSolicitudes = await db.query.solicitudes.findMany({
-      columns: { id: true },
-    });
-    const total = allSolicitudes.length;
+    const total = countResult;
     const totalPages = Math.ceil(total / limit);
 
     // Mapeo seguro con validación de URLs

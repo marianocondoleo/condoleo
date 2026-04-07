@@ -11,6 +11,7 @@ import { emailRecibida } from "@/lib/emails/solicitud-recibida";
 import { actualizarSolicitudStatusSchema, mapearErroresZod } from "@/lib/validations";
 import { logger } from "@/lib/logger";
 import { getProxyUrl } from "@/lib/cloudinary";
+import { env } from "@/lib/env"; // ✅ Importar para validar en startup
 import { z } from "zod";
 
 const VALID_STATUSES = [
@@ -22,12 +23,12 @@ const VALID_STATUSES = [
   "cancelada",
 ];
 
-const EMAIL_DESTINO = process.env.ADMIN_EMAIL || "admin@condoleo.com";
+const EMAIL_DESTINO = env.ADMIN_EMAIL;
 
 async function sendEmail(to: string, subject: string, html: string) {
   try {
     const result = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL!,
+      from: env.RESEND_FROM_EMAIL,
       to,
       subject,
       html,

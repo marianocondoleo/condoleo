@@ -1,3 +1,5 @@
+import { escapeHtml } from "./utils"; // ✅ Importar helper
+
 export function emailEnProduccion({
   pacienteNombre,
   producto,
@@ -13,13 +15,16 @@ export function emailEnProduccion({
       <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #111;">
         <h1 style="font-size: 28px; font-weight: 300; margin-bottom: 8px;">Condoleo.</h1>
         <div style="width: 40px; height: 1px; background: #ccc; margin-bottom: 32px;"></div>
-        <p style="font-size: 15px; line-height: 1.6;">Hola <strong>${pacienteNombre}</strong>,</p>
+        <p style="font-size: 15px; line-height: 1.6;">Hola <strong>${escapeHtml(pacienteNombre)}</strong>,</p>
         <p style="font-size: 15px; line-height: 1.6;">
-          Tu <strong>${producto}</strong> está siendo fabricada. Te avisaremos cuando sea despachada.
+          Tu <strong>${escapeHtml(producto)}</strong> está siendo fabricada. Te avisaremos cuando sea despachada.
         </p>
-        ${mensaje ? `<div style="border-left: 2px solid #ccc; padding-left: 16px; margin: 24px 0; color: #555; font-size: 14px;">${mensaje}</div>` : ""}
-        <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; font-size: 12px; color: #999; text-align: center;">
-          Precisión · Salud · Confianza
+        ${mensaje ? `<div style="border-left: 2px solid #ccc; padding-left: 16px; margin: 24px 0; color: #555; font-size: 14px;">${escapeHtml(mensaje)}</div>` : ""}
+        <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; font-size: 12px; color: #999;">
+          <p style="margin: 0 0 8px 0; text-align: center;">Precisión · Salud · Confianza</p>
+          <p style="margin: 0; font-size: 11px; line-height: 1.5; text-align: center;">
+            Si prefieres no recibir estos emails, puedes <a href="https://condoleo.com/preferencias" style="color: #666; text-decoration: underline;">actualizar tus preferencias</a>.
+          </p>
         </div>
       </div>
     `,

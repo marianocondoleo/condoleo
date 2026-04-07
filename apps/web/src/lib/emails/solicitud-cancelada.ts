@@ -1,3 +1,5 @@
+import { escapeHtml } from "./utils"; // ✅ Importar helper
+
 export function emailSolicitudCancelada({
   pacienteNombre,
   producto,
@@ -14,23 +16,22 @@ export function emailSolicitudCancelada({
         <h1 style="font-size: 28px; font-weight: 300; margin-bottom: 8px;">Condoleo.</h1>
         <div style="width: 40px; height: 1px; background: #ccc; margin-bottom: 32px;"></div>
 
-        <p style="font-size: 15px; line-height: 1.6;">Hola <strong>${pacienteNombre}</strong>,</p>
+        <p style="font-size: 15px; line-height: 1.6;">Hola <strong>${escapeHtml(pacienteNombre)}</strong>,</p>
         <p style="font-size: 15px; line-height: 1.6;">
-          Tu solicitud de <strong>${producto}</strong> no pudo ser procesada en esta oportunidad.
+          Tu solicitud de <strong>${escapeHtml(producto)}</strong> no pudo ser procesada en esta oportunidad.
         </p>
 
         ${mensaje ? `
         <div style="border-left: 2px solid #ccc; padding-left: 16px; margin: 24px 0; color: #555; font-size: 14px; line-height: 1.6;">
           <p style="margin: 0 0 4px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #888;">Mensaje del equipo</p>
-          ${mensaje}
+          ${escapeHtml(mensaje)}
         </div>` : ""}
 
-        <p style="font-size: 14px; color: #555; line-height: 1.6;">
-          Si tenés dudas podés contactarnos respondiendo este mail.
-        </p>
-
-        <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; font-size: 12px; color: #999; text-align: center;">
-          Precisión · Salud · Confianza
+        <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; font-size: 12px; color: #999;">
+          <p style="margin: 0 0 8px 0; text-align: center;">Precisión · Salud · Confianza</p>
+          <p style="margin: 0; font-size: 11px; line-height: 1.5; text-align: center;">
+            Si prefieres no recibir estos emails, puedes <a href="https://condoleo.com/preferencias" style="color: #666; text-decoration: underline;">actualizar tus preferencias</a>.
+          </p>
         </div>
       </div>
     `,

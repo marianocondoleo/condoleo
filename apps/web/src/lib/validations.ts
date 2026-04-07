@@ -208,3 +208,130 @@ export function mapearErroresZod(error: z.ZodError): Record<string, string> {
   
   return errores;
 }
+
+/* ==============================================
+   🔴 CRÍTICO - ADMIN VALIDATION SCHEMAS (Fix 3)
+   Prevents data corruption and SQL injection
+   ============================================== */
+
+/**
+ * Admin Product Validation
+ * Used for POST /api/admin/productos and PUT /api/admin/productos/[id]
+ */
+export const adminProductoSchema = z.object({
+  name: z
+    .string()
+    .min(1, "El nombre es requerido")
+    .max(255, "El nombre no puede exceder 255 caracteres")
+    .trim(),
+
+  sku: z
+    .string()
+    .min(1, "El SKU es requerido")
+    .max(100, "El SKU no puede exceder 100 caracteres")
+    .regex(/^[A-Z0-9-]+$/, "El SKU solo puede contener letras mayúsculas, números y guiones")
+    .trim(),
+
+  price: z
+    .coerce
+    .number()
+    .positive("El precio debe ser mayor a 0")
+    .multipleOf(0.01, "El precio solo puede tener hasta 2 decimales")
+    .max(999999.99, "El precio no puede exceder 999,999.99")
+    .transform((val) => val.toString()),
+
+  description: z
+    .string()
+    .max(2000, "La descripción no puede exceder 2000 caracteres")
+    .optional()
+    .or(z.literal("")),
+
+  categoryId: z
+    .string()
+    .uuid("El categoryId debe ser un UUID válido")
+    .optional()
+    .or(z.literal("")),
+
+  images: z
+    .array(
+      z
+        .string()
+        .url("Cada imagen debe ser una URL válida")
+        .startsWith("https://", "Las imágenes deben usar HTTPS")
+    )
+    .optional()
+    .default([]),
+
+  isActive: z.boolean().default(true),
+});
+
+export type AdminProductoInput = z.infer<typeof adminProductoSchema>;
+
+/**
+ * Admin Payment Config Validation
+ * Used for POST /api/admin/payment-config and PUT /api/admin/payment-config/[id]
+ */
+export const adminPaymentConfigSchema = z.object({
+  method: z
+    .string()
+    .min(1, "El método de pago es requerido")
+    .max(50, "El método de pago no puede exceder 50 caracteres")
+    .regex(/^[a-z_]+$/, "El método solo puede contener letras minúsculas y guiones bajos")
+    .trim(),
+
+  label: z
+    .string()
+    .min(1, "La etiqueta es requerida")
+    .max(100, "La etiqueta no puede exceder 100 caracteres")
+    .trim(),
+
+  icon: z
+    .string()
+    .max(100, "El icono no puede exceder 100 caracteres")
+    .optional()
+    .or(z.literal("")),
+
+  isActive: z.boolean().default(true),
+
+  // Banco data (banco transfer)
+  bankName: z
+    .string()
+    .max(100, "El nombre del banco no puede exceder 100 caracteres")
+    .optional()
+    .or(z.literal("")),
+
+  cbu: z
+    .string()
+    .regex(/^\d{22}$/, "El CBU debe tener exactamente 22 dígitos")
+    .optional()
+    .or(z.literal("")),
+
+  alias: z
+    .string()
+    .regex(/^[a-z0-9]{6,}(\.)[a-z0-9]{6,}(\.)[a-z0-9]{6,}$/, "El alias debe cumplir formato de alias bancario")
+    .optional()
+    .or(z.literal("")),
+
+  titular: z
+    .string()
+    .max(100, "El titular no puede exceder 100 caracteres")
+    .optional()
+    .or(z.literal("")),
+
+  whatsapp: z
+    .string()
+    .regex(/^\+?[0-9]{10,15}$/, "El WhatsApp debe ser un número válido")
+    .optional()
+    .or(z.literal("")),
+});
+
+export type AdminPaymentConfigInput = z.infer<typeof adminPaymentConfigSchema>;
+
+/**
+ * Update schemas (partial for PUT requests)
+ */
+export const adminProductoUpdateSchema = adminProductoSchema.partial();
+export type AdminProductoUpdateInput = z.infer<typeof adminProductoUpdateSchema>;
+
+export const adminPaymentConfigUpdateSchema = adminPaymentConfigSchema.partial();
+export type AdminPaymentConfigUpdateInput = z.infer<typeof adminPaymentConfigUpdateSchema>;

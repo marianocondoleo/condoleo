@@ -6,6 +6,8 @@ import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { requireAdmin } from "@/lib/auth";
+import { adminPaymentConfigUpdateSchema } from "@/lib/validations"; // ✅ Importar schema
+import { z } from "zod"; // ✅ Para manejar ZodError
 
 export async function PUT(
   req: NextRequest,
@@ -17,11 +19,42 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { method, label, icon, isActive, bankName, cbu, alias, titular, whatsapp } = body;
+    
+    // ✅ CRÍTICO - Validar con Zod antes de actualizar
+    let validatedData;
+    try {
+      validatedData = adminPaymentConfigUpdateSchema.parse(body);
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json(
+          { 
+            error: "Datos inválidos",
+            details: validationError.issues.map(e => ({
+              field: e.path.join("."),
+              message: e.message
+            }))
+          },
+          { status: 400 }
+        );
+      }
+      throw validationError;
+    }
+
+    // Construir objeto de actualización solo con campos validados
+    const updateData: any = {};
+    if (validatedData.method !== undefined) updateData.method = validatedData.method;
+    if (validatedData.label !== undefined) updateData.label = validatedData.label;
+    if (validatedData.icon !== undefined) updateData.icon = validatedData.icon || null;
+    if (validatedData.isActive !== undefined) updateData.isActive = validatedData.isActive;
+    if (validatedData.bankName !== undefined) updateData.bankName = validatedData.bankName || null;
+    if (validatedData.cbu !== undefined) updateData.cbu = validatedData.cbu || null;
+    if (validatedData.alias !== undefined) updateData.alias = validatedData.alias || null;
+    if (validatedData.titular !== undefined) updateData.titular = validatedData.titular || null;
+    if (validatedData.whatsapp !== undefined) updateData.whatsapp = validatedData.whatsapp || null;
 
     const [updated] = await db
       .update(paymentConfig)
-      .set({ method, label, icon, isActive, bankName, cbu, alias, titular, whatsapp })
+      .set(updateData)
       .where(eq(paymentConfig.id, id))
       .returning();
 

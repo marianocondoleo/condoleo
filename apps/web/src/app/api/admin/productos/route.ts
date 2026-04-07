@@ -6,6 +6,9 @@ import { products } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { logger } from "@/lib/logger";
 import { requireAdmin } from "@/lib/auth";
+import { adminProductoSchema } from "@/lib/validations"; // ✅ Importar schema
+import { z } from "zod"; // ✅ Para manejar ZodError
+import { checkRateLimit } from "@/lib/rateLimit"; // ✅ Rate limiting
 
 // GET /api/admin/productos
 export async function GET() {
@@ -27,17 +30,51 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
+  // ✅ FIX 8: Rate limiting - máximo 10 requests por minuto
+  const userId = (await auth()).userId || "admin";
+  const { allowed, response: rateLimitResponse } = await checkRateLimit(req, {
+    identifier: userId,
+    limit: 10,
+    window: 60,
+  });
+  if (!allowed) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await req.json();
-    const { name, sku, categoryId, price, description, images, isActive } = body;
-
-    if (!name || !sku || !price) {
-      return NextResponse.json({ error: "name, sku y price son requeridos" }, { status: 400 });
+    
+    // ✅ CRÍTICO - Validar con Zod antes de insertar
+    let validatedData;
+    try {
+      validatedData = adminProductoSchema.parse(body);
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json(
+          { 
+            error: "Datos inválidos",
+            details: validationError.issues.map(e => ({
+              field: e.path.join("."),
+              message: e.message
+            }))
+          },
+          { status: 400 }
+        );
+      }
+      throw validationError;
     }
 
     const [producto] = await db
       .insert(products)
-      .values({ name, sku, categoryId, price, description, images, isActive })
+      .values({
+        name: validatedData.name,
+        sku: validatedData.sku,
+        categoryId: validatedData.categoryId || null,
+        price: validatedData.price,
+        description: validatedData.description || null,
+        images: validatedData.images,
+        isActive: validatedData.isActive,
+      })
       .returning();
 
     return NextResponse.json(producto, { status: 201 });

@@ -26,10 +26,8 @@ export const solicitudStatusEnum = pgEnum("solicitud_status", [
   "cancelada",
 ]);
 
-
-export const paymentMethodEnum = pgEnum("payment_method", [
-  "transferencia",
-]);
+// ✅ FIX 10: Cambiar payment_method de ENUM a TEXT para flexibilidad futura
+// Permite agregar Stripe, MercadoPago sin cambiar el tipo de dato
 
 /* =========================
    USERS
@@ -215,7 +213,7 @@ export const payments = pgTable("payments", {
     .references(() => solicitudes.id, { onDelete: "cascade" })
     .notNull(),
 
-  method: paymentMethodEnum("method").notNull(),
+  method: text("method").notNull(), // ✅ FIX 10: TEXT en lugar de enum
 
   amount: numeric("amount", {
     precision: 10,
