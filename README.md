@@ -1,56 +1,138 @@
-# Turborepo starter
+# CONDOLEO
 
-This Turborepo starter is maintained by the Turborepo core team.
+Plataforma médica integral para gestión de solicitudes de órtesis y prótesis.
 
-## Using this example
+## Tecnología
 
-Run the following command:
+**Stack:**
 
-```sh
-npx create-turbo@latest
+- Next.js 16.1 + React 19 (Web)
+- Expo React Native (Mobile - scaffolding inicial)
+- PostgreSQL (Neon)
+- TypeScript
+- Turbo (monorepo)
+
+**Servicios:**
+
+- Clerk (autenticación)
+- Cloudinary (almacenamiento)
+- Resend (email)
+- Upstash (rate limiting)
+- Andreani (envíos)
+
+## Quick Start
+
+### 1. Clonar y instalar
+
+```bash
+git clone <repo>
+cd condoleo
+npm install
 ```
 
-## What's inside?
+### 2. Configurar variables de entorno
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+cp .env.example apps/web/.env.local
 ```
 
-Without global `turbo`, use your package manager:
+Edita `apps/web/.env.local` y rellena:
 
-```sh
-cd my-turborepo
-npx turbo build
+- `DATABASE_URL` → [Neon](https://neon.tech)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` → [Clerk](https://clerk.com)
+- `CLERK_SECRET_KEY` → [Clerk](https://clerk.com)
+- `CLOUDINARY_*` → [Cloudinary](https://cloudinary.com)
+- `RESEND_API_KEY` → [Resend](https://resend.com)
+- `UPSTASH_REDIS_*` → [Upstash](https://upstash.com) (opcional)
+
+Ver `.env.example` para todos los detalles.
+
+### 3. Setup base de datos
+
+```bash
+cd apps/web
+npm run db:migrate
+```
+
+### 4. Correr desarrollo
+
+```bash
+npm run dev
+```
+
+- **Web**: http://localhost:3000
+- **Mobile**: No incluida en desarrollo actual
+
+## Estructura
+
+```
+condoleo/
+├── apps/
+│   ├── web/           # Next.js principal (producción)
+│   └── mobile/        # Expo (scaffolding, no en deploy)
+├── packages/
+│   ├── ui/            # Componentes compartidos
+│   ├── eslint-config/
+│   └── typescript-config/
+├── .env.example       # Variables de entorno (documentadas)
+└── turbo.json
+```
+
+## Desarrollo Web
+
+```bash
+# Terminal 1: Dev server
+npm run dev
+
+# Terminal 2: Base de datos
+cd apps/web && npm run db:push
+
+# Terminal 3: Type checking
+npm run type-check
+
+# Lint
+npm run lint
+```
+
+## Deployment
+
+### Production Build
+
+```bash
+npm run build
+npm run start
+```
+
+### Variablespara producción
+
+Configurar en el hosting:
+
+- `DATABASE_URL`
+- `CLERK_SECRET_KEY`
+- `CLOUDINARY_API_*`
+- `RESEND_API_KEY`
+- `UPSTASH_REDIS_*`
+- `ADMIN_EMAIL`
+
+## App Mobile
+
+⚠️ **Actualmente en scaffolding inicial**
+
+La app mobile (`apps/mobile`) es solo estructura base:
+
+- Sin pantallas implementadas
+- Sin integración con API
+- No incluida en deploy actual
+
+Ver [apps/mobile/README_STATUS.md](apps/mobile/README_STATUS.md) para detalles.
+
+## Licencia
+
+Privado - Condoleo
 yarn dlx turbo build
 pnpm exec turbo build
-```
+
+````
 
 You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
 
@@ -58,7 +140,7 @@ With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#gl
 
 ```sh
 turbo build --filter=docs
-```
+````
 
 Without global `turbo`:
 
