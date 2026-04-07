@@ -204,19 +204,31 @@ export default function Solicitar() {
               </label>
 
               <label className="inline-flex items-center gap-4 border border-white/20 text-white/50 hover:text-white hover:border-white/60 px-6 py-3 text-xs tracking-widest uppercase rounded-full cursor-pointer transition">
-                Subir archivo →
+                Subir imagen →
                 <input
                   type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
                   className="hidden"
-                  onChange={(e) =>
-                    setForm({ ...form, file: e.target.files?.[0] || null })
-                  }
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+                        alert('Solo se permiten imágenes (JPEG, PNG, WebP, GIF)');
+                        return;
+                      }
+                      setForm({ ...form, file });
+                    }
+                  }}
                 />
               </label>
 
+              <p className="text-xs text-white/40">
+                Solo se aceptan imágenes en formato: JPEG, PNG, WebP o GIF. Máximo 5MB.
+              </p>
+
               {form.file && (
-                <p className="text-xs text-white/40">
-                  {form.file.name}
+                <p className="text-xs text-green-400">
+                  ✓ {form.file.name}
                 </p>
               )}
             </div>

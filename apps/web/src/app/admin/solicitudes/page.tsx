@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ensureProxyUrl } from "@/lib/cloudinary-client";
 
 type Solicitud = {
   id: string;
@@ -297,8 +298,9 @@ export default function AdminSolicitudesPage() {
                           {s.files.map((f, i) => (
                             <a
                               key={i}
-                              href={f.url}
+                              href={ensureProxyUrl(f.url, true)}
                               target="_blank"
+                              rel="noopener noreferrer"
                               className="block underline text-sm text-white/50 hover:text-white"
                             >
                               Ver archivo {i + 1}

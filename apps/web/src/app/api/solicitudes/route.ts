@@ -9,16 +9,16 @@ import { z } from "zod";
 
 export const runtime = "nodejs";
 
-// Validaciones de archivo
-const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+// Validaciones de archivo - Solo imágenes permitidas
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(req: Request) {
   try {
     // Rate limiting: 10 solicitudes por hora por IP
     const { allowed, response: rateLimitResponse } = await checkRateLimit(req, {
-      maxRequests: 10,
-      windowSeconds: 3600,
+      limit: 10,
+      window: 3600,
     });
 
     if (!allowed) {
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     if (file) {
       if (!ALLOWED_MIME_TYPES.includes(file.type)) {
         return Response.json(
-          { error: "Tipo de archivo no permitido. Solo PDF, JPEG, PNG y WEBP." },
+          { error: "Tipo de archivo no permitido. Solo imágenes (JPEG, PNG, WebP, GIF)." },
           { status: 400 }
         );
       }
@@ -108,9 +108,31 @@ export async function POST(req: Request) {
 
     let fileUrl: string | null = null;
     if (file) {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      fileUrl = await uploadFile(buffer, file.name, "condoleo/ordenes-medicas");
+      try {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        logger.info("api/solicitudes POST", "Subiendo archivo a Cloudinary", {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+        });
+        fileUrl = await uploadFile(
+          buffer,
+          file.name,
+          "condoleo/ordenes-medicas",
+          file.type || "application/octet-stream"
+        );
+        logger.info("api/solicitudes POST", "Archivo subido exitosamente", {
+          fileUrl,
+        });
+      } catch (uploadError) {
+        logger.error("api/solicitudes POST - Upload", uploadError, {
+          fileName: file?.name,
+          fileType: file?.type,
+        });
+        // NO fallar si Cloudinary falla, continuar sin archivo
+        logger.warn("api/solicitudes POST", "Continuando sin archivo debido a error");
+      }
     }
 
     const [nueva] = await db.insert(solicitudes).values({
@@ -126,15 +148,31 @@ export async function POST(req: Request) {
     }).returning();
 
     if (fileUrl) {
-      await db.insert(solicitudFiles).values({
-        id: crypto.randomUUID(),
-        solicitudId: nueva.id,
-        url: fileUrl,
-        type: file?.name || null,
-      });
+      try {
+        await db.insert(solicitudFiles).values({
+          id: crypto.randomUUID(),
+          solicitudId: nueva.id,
+          url: fileUrl,
+          type: file?.name || null,
+        });
+        logger.info("api/solicitudes POST", "Archivo guardado en BD", {
+          solicitudId: nueva.id,
+          fileUrl,
+        });
+      } catch (dbError) {
+        logger.error("api/solicitudes POST - DB", dbError, {
+          solicitudId: nueva.id,
+          fileUrl,
+        });
+        // Log pero no falla la solicitud
+      }
     }
 
-    logger.info("api/solicitudes POST", `Nueva solicitud creada: ${nueva.id}`, { userId, productId });
+    logger.info("api/solicitudes POST", `Nueva solicitud creada: ${nueva.id}`, {
+      userId,
+      productId,
+      hasFile: !!fileUrl,
+    });
     return Response.json({ success: true, solicitud: nueva });
   } catch (error) {
     return logger.getErrorResponse("api/solicitudes POST", error);

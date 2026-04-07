@@ -10,6 +10,7 @@ import { emailDespachada } from "@/lib/emails/solicitud-despachada";
 import { emailRecibida } from "@/lib/emails/solicitud-recibida";
 import { actualizarSolicitudStatusSchema, mapearErroresZod } from "@/lib/validations";
 import { logger } from "@/lib/logger";
+import { getProxyUrl } from "@/lib/cloudinary";
 import { z } from "zod";
 
 const VALID_STATUSES = [
@@ -34,6 +35,54 @@ async function sendEmail(to: string, subject: string, html: string) {
     logger.info("sendEmail", `Email enviado a ${to}: ${subject}`, { result });
   } catch (error) {
     logger.error("sendEmail", error);
+  }
+}
+
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { sessionClaims } = await auth();
+    const role = (sessionClaims?.metadata as { role?: string })?.role;
+    if (role !== "admin") {
+      return Response.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const solicitud = await db.query.solicitudes.findFirst({
+      where: eq(solicitudes.id, id),
+      with: {
+        user: {
+          with: { addresses: true },
+        },
+        product: true,
+        files: true,
+      },
+    });
+
+    if (!solicitud) {
+      return Response.json({ error: "Solicitud no encontrada" }, { status: 404 });
+    }
+
+    // Validar URLs de archivos y convertir a URLs de proxy
+    const filesValidated = (solicitud.files ?? []).map((f) => ({
+      ...f,
+      url: getProxyUrl(f.url, true),
+      isValid: f.url ? f.url.startsWith("http") : false,
+    }));
+
+    logger.info("admin/solicitudes GET", `Solicitud obtenida: ${id}`, {
+      hasFiles: filesValidated.length,
+    });
+
+    return Response.json({
+      ...solicitud,
+      files: filesValidated,
+    });
+  } catch (error) {
+    return logger.getErrorResponse("api/admin/solicitudes GET", error);
   }
 }
 

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { solicitudes } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { logger } from "@/lib/logger";
+import { getProxyUrl } from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 
@@ -42,13 +43,18 @@ export async function GET(req: Request) {
     const total = allSolicitudes.length;
     const totalPages = Math.ceil(total / limit);
 
-    // Mapeo seguro
+    // Mapeo seguro con validación de URLs
     const mapped = data.map((s) => ({
       ...s,
       user: {
         ...s.user,
         last_name: s.user?.lastName || "",
       },
+      files: (s.files ?? []).map((f) => ({
+        ...f,
+        url: getProxyUrl(f.url, true),
+        isValid: f.url ? f.url.startsWith("http") : false,
+      })),
     }));
 
     logger.info("admin/solicitudes GET", `Página ${page}/${totalPages}`, { limit, total });

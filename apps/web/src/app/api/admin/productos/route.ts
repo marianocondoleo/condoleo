@@ -5,16 +5,11 @@ import { db } from "@/lib/db";
 import { products } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { logger } from "@/lib/logger";
-
-async function checkAdmin() {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as any)?.role;
-  return role === "admin";
-}
+import { requireAdmin } from "@/lib/auth";
 
 // GET /api/admin/productos
 export async function GET() {
-  if (!(await checkAdmin())) {
+  if (!(await requireAdmin())) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
@@ -28,7 +23,7 @@ export async function GET() {
 
 // POST /api/admin/productos
 export async function POST(req: NextRequest) {
-  if (!(await checkAdmin())) {
+  if (!(await requireAdmin())) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
+import { ensureProxyUrl } from "@/lib/cloudinary-client";
 
 type Solicitud = {
   id: string;
@@ -209,8 +210,9 @@ export default function MisSolicitudesPage() {
                           {s.files.map((f, i) => (
                             <a
                               key={i}
-                              href={f.url}
+                              href={ensureProxyUrl(f.url, true)}
                               target="_blank"
+                              rel="noopener noreferrer"
                               className="block text-[#6294A0] underline text-xs hover:text-white transition-colors"
                             >
                               {f.type || `Archivo ${i + 1}`}

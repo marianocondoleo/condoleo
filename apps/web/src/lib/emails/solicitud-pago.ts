@@ -33,10 +33,7 @@ export function emailSolicitudPago({
           Para continuar, realizá la transferencia con el detalle a continuación:
         </p>
 
-        ${mensaje ? `
-        <div style="border-left: 2px solid #ccc; padding-left: 16px; margin: 24px 0; color: #555; font-size: 14px;">
-          ${mensaje}
-        </div>` : ""}
+
 
         <!-- Detalle de precios -->
         <div style="background: #f5f5f5; border-radius: 8px; padding: 24px; margin: 24px 0;">
@@ -59,15 +56,20 @@ export function emailSolicitudPago({
         <div style="background: #f5f5f5; border-radius: 8px; padding: 24px; margin: 24px 0;">
           <p style="margin: 0 0 16px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #888;">Datos bancarios</p>
           <p style="margin: 4px 0; font-size: 15px;"><strong>Banco:</strong> ${datosBancarios.banco}</p>
-          <p style="margin: 4px 0; font-size: 15px;"><strong>CBU:</strong> <code style="background: #eee; padding: 4px 8px; border-radius: 3px; font-family: monospace; font-weight: bold;">${datosBancarios.cbu}</code></p>
-          <p style="margin: 4px 0; font-size: 15px;"><strong>Alias:</strong> <code style="background: #eee; padding: 4px 8px; border-radius: 3px; font-family: monospace; font-weight: bold;">${datosBancarios.alias}</code></p>
+          <p style="margin: 4px 0; font-size: 15px;"><strong>CBU:</strong> ${datosBancarios.cbu}</p>
+          <p style="margin: 4px 0; font-size: 15px;"><strong>Alias:</strong> ${datosBancarios.alias}</p>
           <p style="margin: 4px 0; font-size: 15px;"><strong>Titular:</strong> ${datosBancarios.titular}</p>
         </div>
 
-        <p style="font-size: 14px; color: #555; line-height: 1.6;">
-          Una vez realizada la transferencia, enviá el comprobante por email a 
-          <a href="mailto:ortopediafoc@gmail.com" style="color: #111;">ortopediafoc@gmail.com</a>.
-        </p>
+          <p style="font-size: 14px; color: #555; line-height: 1.6;">
+            Una vez realizada la transferencia, enviá el comprobante por email a 
+            <a href="mailto:ortopediafoc@gmail.com" style="color: #111;">ortopediafoc@gmail.com</a>.
+          </p>
+
+        ${mensaje ? `
+        <div style="border-left: 2px solid #ccc; padding-left: 16px; margin: 24px 0; color: #555; font-size: 14px;">
+        ${mensaje}
+        </div>` : ""}
 
         <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; font-size: 12px; color: #999; text-align: center;">
           Precisión · Salud · Confianza

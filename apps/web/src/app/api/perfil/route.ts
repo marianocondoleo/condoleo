@@ -77,8 +77,8 @@ export async function POST(req: Request) {
   try {
     // Rate limiting: 30 actualización de perfil por hora por IP
     const { allowed, response: rateLimitResponse } = await checkRateLimit(req, {
-      maxRequests: 30,
-      windowSeconds: 3600,
+      limit: 30,
+      window: 3600,
     });
 
     if (!allowed) {

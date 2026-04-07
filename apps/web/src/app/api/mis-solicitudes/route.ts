@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { solicitudes, products, users, solicitudFiles } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { logger } from "@/lib/logger";
+import { getProxyUrl } from "@/lib/cloudinary";
 import { eq } from "drizzle-orm";
 
 export const runtime = "nodejs";
@@ -47,6 +48,11 @@ export async function GET(req: Request) {
       precioProducto: s.precioProducto?.toString() || "0",
       precioEnvio: s.precioEnvio?.toString() || "0",
       precioTotal: s.precioTotal?.toString() || "0",
+      // Convertir URLs de archivos a URLs de proxy
+      files: (s.files || []).map((f) => ({
+        ...f,
+        url: getProxyUrl(f.url, true), // true = visualizar en navegador, false = descargar
+      })),
     }));
 
     logger.info("mis-solicitudes GET", `Página ${page}/${totalPages}`, { userId, total });
