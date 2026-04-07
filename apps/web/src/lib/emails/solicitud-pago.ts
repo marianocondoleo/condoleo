@@ -55,12 +55,12 @@ export function emailSolicitudPago({
           </div>
         </div>
 
-        <!-- Datos bancarios -->
+        <!-- Datos bancarios (completos) -->
         <div style="background: #f5f5f5; border-radius: 8px; padding: 24px; margin: 24px 0;">
           <p style="margin: 0 0 16px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #888;">Datos bancarios</p>
           <p style="margin: 4px 0; font-size: 15px;"><strong>Banco:</strong> ${datosBancarios.banco}</p>
-          <p style="margin: 4px 0; font-size: 15px;"><strong>CBU:</strong> ${datosBancarios.cbu}</p>
-          <p style="margin: 4px 0; font-size: 15px;"><strong>Alias:</strong> ${datosBancarios.alias}</p>
+          <p style="margin: 4px 0; font-size: 15px;"><strong>CBU:</strong> <code style="background: #eee; padding: 4px 8px; border-radius: 3px; font-family: monospace; font-weight: bold;">${datosBancarios.cbu}</code></p>
+          <p style="margin: 4px 0; font-size: 15px;"><strong>Alias:</strong> <code style="background: #eee; padding: 4px 8px; border-radius: 3px; font-family: monospace; font-weight: bold;">${datosBancarios.alias}</code></p>
           <p style="margin: 4px 0; font-size: 15px;"><strong>Titular:</strong> ${datosBancarios.titular}</p>
         </div>
 

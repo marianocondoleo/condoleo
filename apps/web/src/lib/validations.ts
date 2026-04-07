@@ -139,7 +139,7 @@ export type ActualizarSolicitudStatusInput = z.infer<typeof actualizarSolicitudS
 
 // Validaciones para configuración de métodos de pago
 export const crearMetodoPagoSchema = z.object({
-  method: z.enum(["mercadopago", "transferencia"] as const).describe("Método de pago"),
+  method: z.enum(["transferencia"] as const).describe("Método de pago"),
   
   label: z.string()
     .min(3, "La descripción debe tener al menos 3 caracteres")

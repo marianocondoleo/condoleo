@@ -4,6 +4,7 @@ import { paymentConfig } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 async function checkAdmin() {
   const { sessionClaims } = await auth();
@@ -35,8 +36,7 @@ export async function PUT(
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Error al actualizar" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/payment-config PUT", error);
   }
 }
 
@@ -61,7 +61,6 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Error al eliminar" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/payment-config DELETE", error);
   }
 }

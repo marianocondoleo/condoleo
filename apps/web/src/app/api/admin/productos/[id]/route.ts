@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { products } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { logger } from "@/lib/logger";
 
 async function checkAdmin() {
   const { sessionClaims } = await auth();
@@ -37,8 +38,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (error?.code === "23505") {
       return NextResponse.json({ error: "El SKU ya existe" }, { status: 409 });
     }
-    console.error(error);
-    return NextResponse.json({ error: "Error al actualizar producto" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/productos PUT", error);
   }
 }
 
@@ -61,14 +61,13 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     }
 
     return NextResponse.json({ ok: true });
-} catch (error: any) {
-  if (error?.message?.includes("Failed query") || error?.code === "23503") {
-    return NextResponse.json(
-      { error: "No se puede eliminar: el producto tiene solicitudes asociadas." },
-      { status: 409 }
-    );
+  } catch (error: any) {
+    if (error?.message?.includes("Failed query") || error?.code === "23503") {
+      return NextResponse.json(
+        { error: "No se puede eliminar: el producto tiene solicitudes asociadas." },
+        { status: 409 }
+      );
+    }
+    return logger.getErrorResponse("api/admin/productos DELETE", error);
   }
-  console.error("ERROR DELETE:", error);
-  return NextResponse.json({ error: String(error) }, { status: 500 });
-}
 }

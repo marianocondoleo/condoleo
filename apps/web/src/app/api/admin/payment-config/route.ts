@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { paymentConfig } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 async function checkAdmin() {
   const { sessionClaims } = await auth();
@@ -18,8 +19,7 @@ export async function GET() {
     const data = await db.select().from(paymentConfig);
     return NextResponse.json(data);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Error al obtener métodos de pago" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/payment-config GET", error);
   }
 }
 
@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Error al crear método de pago" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/payment-config POST", error);
   }
 }

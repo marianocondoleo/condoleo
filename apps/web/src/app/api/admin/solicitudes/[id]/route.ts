@@ -23,15 +23,15 @@ const VALID_STATUSES = [
 
 const EMAIL_DESTINO = process.env.ADMIN_EMAIL || "admin@condoleo.com";
 
-async function sendEmail(subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string) {
   try {
     const result = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL!,
-      to: EMAIL_DESTINO,
+      to,
       subject,
       html,
     });
-    logger.info("sendEmail", `Email enviado: ${subject}`, { result });
+    logger.info("sendEmail", `Email enviado a ${to}: ${subject}`, { result });
   } catch (error) {
     logger.error("sendEmail", error);
   }
@@ -50,11 +50,14 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await req.json();
-    const { status, mensajeCliente, adminNotes, precioEnvio, precioProducto, precioTotal } = body;
+    const { status, mensajeCliente, adminNotes, precioEnvio } = body;
 
-    // Validar con Zod
+    // Validar con Zod (solo campos que se envíen)
     try {
-      actualizarSolicitudStatusSchema.parse({ status, precioEnvio, precioProducto, precioTotal });
+      actualizarSolicitudStatusSchema.parse({ 
+        status, 
+        precioEnvio: precioEnvio !== undefined ? precioEnvio.toString() : undefined,
+      });
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
         const errores = mapearErroresZod(validationError);
@@ -99,11 +102,9 @@ export async function PATCH(
     // Registrar en historial de auditoría
     if (userId) {
       await db.insert(solicitudStatusHistory).values({
-        id: crypto.randomUUID(),
         solicitudId: id,
         status,
         changedBy: userId,
-        timestamp: new Date(),
       });
     }
 
@@ -138,32 +139,32 @@ export async function PATCH(
             titular: config.titular || "",
           },
         });
-        await sendEmail(template.subject, template.html);
+        await sendEmail(pacienteEmail, template.subject, template.html);
       }
     }
 
     // ── Email: En producción ───────────────────────────────
     if (status === "en_produccion") {
       const template = emailEnProduccion({ pacienteNombre, producto, mensaje: mensajeCliente });
-      await sendEmail(template.subject, template.html);
+      await sendEmail(pacienteEmail, template.subject, template.html);
     }
 
     // ── Email: Despachado ──────────────────────────────────
     if (status === "despachado") {
       const template = emailDespachada({ pacienteNombre, producto, mensaje: mensajeCliente });
-      await sendEmail(template.subject, template.html);
+      await sendEmail(pacienteEmail, template.subject, template.html);
     }
 
     // ── Email: Recibida ────────────────────────────────────
     if (status === "recibida") {
       const template = emailRecibida({ pacienteNombre, producto, mensaje: mensajeCliente });
-      await sendEmail(template.subject, template.html);
+      await sendEmail(pacienteEmail, template.subject, template.html);
     }
 
     // ── Email: Cancelación ─────────────────────────────────
     if (status === "cancelada") {
       const template = emailSolicitudCancelada({ pacienteNombre, producto, mensaje: mensajeCliente });
-      await sendEmail(template.subject, template.html);
+      await sendEmail(pacienteEmail, template.subject, template.html);
     }
 
     logger.info(

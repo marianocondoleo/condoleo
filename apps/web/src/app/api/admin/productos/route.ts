@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { products } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { logger } from "@/lib/logger";
 
 async function checkAdmin() {
   const { sessionClaims } = await auth();
@@ -21,8 +22,7 @@ export async function GET() {
     const data = await db.select().from(products).orderBy(products.createdAt);
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error al obtener productos:", error);
-    return NextResponse.json({ error: "Error al obtener productos" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/productos GET", error);
   }
 }
 
@@ -50,7 +50,6 @@ export async function POST(req: NextRequest) {
     if (error?.code === "23505") {
       return NextResponse.json({ error: "El SKU ya existe" }, { status: 409 });
     }
-    console.error(error);
-    return NextResponse.json({ error: "Error al crear producto" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/productos POST", error);
   }
 }

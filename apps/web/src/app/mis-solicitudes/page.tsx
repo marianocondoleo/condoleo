@@ -67,7 +67,7 @@ export default function MisSolicitudesPage() {
     try {
       const res = await fetch("/api/mis-solicitudes");
       const data = await res.json();
-      setSolicitudes(Array.isArray(data) ? data : []);
+      setSolicitudes(Array.isArray(data?.data) ? data.data : []);
     } catch (error) {
       console.error("Error al cargar solicitudes:", error);
       setSolicitudes([]);

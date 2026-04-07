@@ -28,7 +28,6 @@ export const solicitudStatusEnum = pgEnum("solicitud_status", [
 
 
 export const paymentMethodEnum = pgEnum("payment_method", [
-  "mercadopago",
   "transferencia",
 ]);
 
@@ -224,8 +223,6 @@ export const payments = pgTable("payments", {
   }),
 
   status: text("status"), // pending, approved, rejected
-
-  mpPaymentId: text("mp_payment_id"),
 
   createdAt: timestamp("created_at").defaultNow(),
 });

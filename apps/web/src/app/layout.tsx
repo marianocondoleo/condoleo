@@ -16,8 +16,6 @@ export default function RootLayout({
     <ClerkProvider 
       signInUrl="/sign-in" 
       signUpUrl="/sign-up"
-      signOutRedirectUrl="/sign-in"
-    
     >
       <html lang="es">
         <body>{children}</body>

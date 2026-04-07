@@ -110,7 +110,7 @@ export default function AdminSolicitudesPage() {
     try {
       const res = await fetch("/api/admin/solicitudes");
       const data = await res.json();
-      setSolicitudes(Array.isArray(data) ? data : []);
+      setSolicitudes(Array.isArray(data?.data) ? data.data : []);
     } catch (error) {
       console.error(error);
       setSolicitudes([]);

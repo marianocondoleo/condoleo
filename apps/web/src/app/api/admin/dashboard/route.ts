@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { solicitudes } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { sql } from "drizzle-orm";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const { sessionClaims } = await auth();
@@ -36,7 +37,6 @@ export async function GET() {
 
     return Response.json(result);
   } catch (error) {
-    console.error(error);
-    return Response.json({ error: "Error interno" }, { status: 500 });
+    return logger.getErrorResponse("api/admin/dashboard GET", error);
   }
 }
