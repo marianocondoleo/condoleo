@@ -5,7 +5,12 @@ const nextConfig: NextConfig = {
   
   // Configurar imágenes de Cloudinary
   images: {
-    domains: ["res.cloudinary.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
     formats: ["image/webp", "image/avif"],
   },
 
