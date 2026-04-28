@@ -1,9 +1,7 @@
 import { db } from "@/lib/db";
-import { solicitudes, products, users, solicitudFiles } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { logger } from "@/lib/logger";
 import { getProxyUrl } from "@/lib/cloudinary";
-import { eq } from "drizzle-orm";
 
 export const runtime = "nodejs";
 

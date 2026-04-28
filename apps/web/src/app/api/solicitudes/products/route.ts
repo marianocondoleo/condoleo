@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
-import { products } from "@/lib/db/schema";
 
 export async function GET() {
   const { userId } = await auth();

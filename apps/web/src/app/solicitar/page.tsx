@@ -16,9 +16,17 @@ type ProfileData = {
   postalCode: string;
 };
 
+type Product = {
+  id: string;
+  name: string;
+  description?: string;
+  price: string;
+  images?: string[];
+};
+
 export default function Solicitar() {
   const { user } = useUser();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({

@@ -92,7 +92,7 @@ export async function GET(req: Request) {
       if (lastPart && lastPart.includes(".")) {
         fileName = lastPart.split("?")[0]; // quitar query params
       }
-    } catch (e) {
+    } catch {
       logger.warn("files/download", "No se pudo extraer nombre de archivo de URL");
     }
 

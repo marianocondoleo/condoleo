@@ -63,21 +63,21 @@ export default function MisSolicitudesPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchSolicitudes = async () => {
-    if (!user) return;
-    try {
-      const res = await fetch("/api/mis-solicitudes");
-      const data = await res.json();
-      setSolicitudes(Array.isArray(data?.data) ? data.data : []);
-    } catch (error) {
-      console.error("Error al cargar solicitudes:", error);
-      setSolicitudes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchSolicitudes = async () => {
+      if (!user) return;
+      try {
+        const res = await fetch("/api/mis-solicitudes");
+        const data = await res.json();
+        setSolicitudes(Array.isArray(data?.data) ? data.data : []);
+      } catch (error) {
+        console.error("Error al cargar solicitudes:", error);
+        setSolicitudes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchSolicitudes();
   }, [user]);
 

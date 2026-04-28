@@ -6,7 +6,7 @@ export default async function AuthRedirect() {
 
   if (!userId) redirect("/sign-in");
 
-  const role = (sessionClaims?.metadata as any)?.role;
+  const role = (sessionClaims?.metadata as Record<string, unknown>)?.role;
 
   redirect(role === "admin" ? "/admin" : "/");
 }

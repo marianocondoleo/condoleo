@@ -8,7 +8,7 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 export default clerkMiddleware(async (auth, request) => {
   const { userId, sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as any)?.role;
+  const role = (sessionClaims?.metadata as Record<string, unknown>)?.role;
 
   // Si va a /sign-in o /sign-up y ya está logueado como admin → redirigir a /admin
   if (userId && role === "admin" && request.nextUrl.pathname.startsWith("/sign-in")) {

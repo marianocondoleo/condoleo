@@ -1,7 +1,6 @@
 // app/api/admin/payment-config/[id]/route.ts
 import { db } from "@/lib/db";
 import { paymentConfig } from "@/lib/db/schema";
-import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
@@ -41,7 +40,7 @@ export async function PUT(
     }
 
     // Construir objeto de actualización solo con campos validados
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (validatedData.method !== undefined) updateData.method = validatedData.method;
     if (validatedData.label !== undefined) updateData.label = validatedData.label;
     if (validatedData.icon !== undefined) updateData.icon = validatedData.icon || null;

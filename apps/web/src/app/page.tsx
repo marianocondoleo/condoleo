@@ -1,5 +1,5 @@
 "use client";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -11,14 +11,19 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoaded || !user) return;
-    fetch("/api/perfil")
-      .then(r => r.json())
-      .then(data => {
+    const checkUserRole = async () => {
+      try {
+        const res = await fetch("/api/perfil");
+        const data = await res.json();
         if (data.user?.role === "admin") {
           router.push("/admin");
         }
-      });
-  }, [isLoaded, user]);
+      } catch (error) {
+        console.error("Error checking user role:", error);
+      }
+    };
+    checkUserRole();
+  }, [isLoaded, user, router]);
 
   const bgImage =
     "url('https://images.pexels.com/photos/5960467/pexels-photo-5960467.jpeg')";

@@ -1,5 +1,4 @@
 // app/api/admin/productos/[id]/route.ts
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { products } from "@/lib/db/schema";
@@ -40,7 +39,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     // Construir objeto de actualización solo con campos validados
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (validatedData.name !== undefined) updateData.name = validatedData.name;
     if (validatedData.sku !== undefined) updateData.sku = validatedData.sku;
     if (validatedData.categoryId !== undefined) updateData.categoryId = validatedData.categoryId || null;
@@ -60,8 +59,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     return NextResponse.json(updated);
-  } catch (error: any) {
-    if (error?.code === "23505") {
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    if (err?.code === "23505") {
       return NextResponse.json({ error: "El SKU ya existe" }, { status: 409 });
     }
     return logger.getErrorResponse("api/admin/productos PUT", error);
@@ -87,8 +87,9 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     }
 
     return NextResponse.json({ ok: true });
-  } catch (error: any) {
-    if (error?.message?.includes("Failed query") || error?.code === "23503") {
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    if (typeof err?.message === "string" && (err.message.includes("Failed query") || err?.code === "23503")) {
       return NextResponse.json(
         { error: "No se puede eliminar: el producto tiene solicitudes asociadas." },
         { status: 409 }

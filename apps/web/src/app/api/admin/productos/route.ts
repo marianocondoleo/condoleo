@@ -1,5 +1,4 @@
 // app/api/admin/productos/route.ts
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { products } from "@/lib/db/schema";
@@ -78,8 +77,9 @@ export async function POST(req: NextRequest) {
       .returning();
 
     return NextResponse.json(producto, { status: 201 });
-  } catch (error: any) {
-    if (error?.code === "23505") {
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    if (err?.code === "23505") {
       return NextResponse.json({ error: "El SKU ya existe" }, { status: 409 });
     }
     return logger.getErrorResponse("api/admin/productos POST", error);

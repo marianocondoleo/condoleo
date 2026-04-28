@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   try {
     const { sessionClaims } = await auth();
-    const role = (sessionClaims?.metadata as any)?.role;
+    const role = (sessionClaims?.metadata as Record<string, unknown>)?.role;
     if (role !== "admin") {
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }

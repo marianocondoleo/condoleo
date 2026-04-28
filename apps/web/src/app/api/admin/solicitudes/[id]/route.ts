@@ -14,17 +14,6 @@ import { getProxyUrl } from "@/lib/cloudinary";
 import { env } from "@/lib/env"; // ✅ Importar para validar en startup
 import { z } from "zod";
 
-const VALID_STATUSES = [
-  "solicitud_enviada",
-  "aprobada_pendiente_pago",
-  "en_produccion",
-  "despachado",
-  "recibida",
-  "cancelada",
-];
-
-const EMAIL_DESTINO = env.ADMIN_EMAIL;
-
 async function sendEmail(to: string, subject: string, html: string) {
   try {
     const result = await resend.emails.send({

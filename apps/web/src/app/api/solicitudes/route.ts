@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { solicitudes, solicitudFiles, users } from "@/lib/db/schema";
+import { solicitudes, solicitudFiles } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { uploadFile } from "@/lib/cloudinary";
 import { crearSolicitudSchema, mapearErroresZod } from "@/lib/validations";
