@@ -4,14 +4,6 @@
  * En desarrollo, sí muestra detalles completos
  */
 
-type LogLevel = "error" | "warn" | "info" | "debug";
-
-interface LogContext {
-  context: string;
-  timestamp: Date;
-  environment: "production" | "development";
-}
-
 class Logger {
   private isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -21,12 +13,6 @@ class Logger {
    * En desarrollo: stack trace completo
    */
   error(context: string, error: unknown, additionalInfo?: Record<string, unknown>) {
-    const ctx: LogContext = {
-      context,
-      timestamp: new Date(),
-      environment: this.isDevelopment ? "development" : "production",
-    };
-
     let errorMessage = "Unknown error";
     let errorStack = "";
 

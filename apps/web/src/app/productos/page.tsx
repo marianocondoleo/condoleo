@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
 import Image from "next/image";
+import Navbar from "@/components/Navbar";
 
 type Product = {
   id: string;
@@ -70,10 +70,11 @@ export default function ProductosPage() {
                 {/* Imagen */}
                 <div className="aspect-square bg-white/5 relative overflow-hidden">
                   {p.images && p.images.length > 0 ? (
-                    <img
+                    <Image
                       src={p.images[0]}
                       alt={p.name}
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                      fill
+                      className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">

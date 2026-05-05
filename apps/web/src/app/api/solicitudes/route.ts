@@ -121,8 +121,7 @@ export async function POST(req: Request) {
         fileUrl = await uploadFile(
           buffer,
           file.name,
-          "condoleo/ordenes-medicas",
-          file.type || "application/octet-stream"
+          "condoleo/ordenes-medicas"
         );
         logger.info("api/solicitudes POST", "Archivo subido exitosamente", {
           fileUrl,

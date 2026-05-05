@@ -12,7 +12,7 @@ cloudinary.config({
  * Obtener tipo de recurso basado en MIME type
  * Solo aceptamos imágenes, así que siempre retornamos "image"
  */
-function getResourceType(mimeType: string): "image" {
+function getResourceType(): "image" {
   // Solo imágenes permitidas - Cloudinary sirve como asset público
   return "image";
 }
@@ -20,8 +20,7 @@ function getResourceType(mimeType: string): "image" {
 export async function uploadFile(
   buffer: Buffer,
   fileName: string,
-  folder: string = "condoleo",
-  mimeType: string = "application/octet-stream"
+  folder: string = "condoleo"
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     // Sanitizar nombre del archivo (SIN extensión)
@@ -34,11 +33,10 @@ export async function uploadFile(
     // NOT incluir extensión en publicId - Cloudinary la añade automáticamente
     const publicId = `${sanitizedFileName}_${Date.now()}`;
 
-    const resourceType = getResourceType(mimeType);
+    const resourceType = getResourceType();
 
     logger.info("uploadFile", "Iniciando upload a Cloudinary", {
       fileName,
-      mimeType,
       resourceType,
       publicId,
       folder,
@@ -58,7 +56,6 @@ export async function uploadFile(
             folder,
             fileName,
             publicId,
-            mimeType,
             resourceType,
           });
           return reject(error);

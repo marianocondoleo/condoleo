@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 
 type ProfileData = {
@@ -25,7 +24,6 @@ type Product = {
 };
 
 export default function Solicitar() {
-  const { user } = useUser();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 

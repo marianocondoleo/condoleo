@@ -76,7 +76,7 @@ if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) {
       redis,
       limiter: Ratelimit.slidingWindow(30, "60s"),
     });
-  } catch (error) {
+  } catch {
     console.warn("Upstash Redis no disponible, usando in-memory limiter");
   }
 }
