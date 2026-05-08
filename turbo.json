@@ -21,7 +21,6 @@
         "UPSTASH_REDIS_REST_TOKEN",
         "NEXT_PUBLIC_BASE_URL",
         "NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL",
-        "MP_ACCESS_TOKEN",
         "NODE_ENV"
       ]
     },

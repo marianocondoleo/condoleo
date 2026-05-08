@@ -68,7 +68,6 @@ export async function POST(req: NextRequest) {
       .values({
         name: validatedData.name,
         sku: validatedData.sku,
-        categoryId: validatedData.categoryId || null,
         price: validatedData.price,
         description: validatedData.description || null,
         images: validatedData.images,

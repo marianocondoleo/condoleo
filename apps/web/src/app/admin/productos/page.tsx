@@ -6,7 +6,6 @@ type Product = {
   id: string;
   name: string;
   sku: string;
-  categoryId?: string | null;
   price: string;
   description?: string | null;
   images?: string[] | null;

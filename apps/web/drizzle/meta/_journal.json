@@ -36,6 +36,13 @@
       "when": 1775500101034,
       "tag": "0004_remove_mercadopago",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778167977757,
+      "tag": "0005_fat_serpent_society",
+      "breakpoints": true
     }
   ]
 }

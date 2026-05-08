@@ -9,8 +9,10 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "expo": "~55.0.5",
+    "drizzle-kit": "0.31.10",
+    "expo": "^49.0.23",
     "expo-status-bar": "~55.0.4",
+    "next": "16.2.5",
     "react": "19.2.0",
     "react-native": "0.83.2"
   },

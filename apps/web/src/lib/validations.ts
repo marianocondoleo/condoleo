@@ -246,12 +246,6 @@ export const adminProductoSchema = z.object({
     .optional()
     .or(z.literal("")),
 
-  categoryId: z
-    .string()
-    .uuid("El categoryId debe ser un UUID válido")
-    .optional()
-    .or(z.literal("")),
-
   images: z
     .array(
       z

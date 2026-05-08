@@ -1,4 +1,5 @@
-// middleware.ts
+// proxy.ts - Next.js 16 proxy middleware
+// Reemplazo de middleware.ts (deprecated)
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
@@ -6,6 +7,7 @@ const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isProtectedRoute = createRouteMatcher([
   "/solicitar(.*)", "/mis-solicitudes(.*)", "/perfil(.*)"
 ]);
+
 export default clerkMiddleware(async (auth, request) => {
   const { userId, sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as Record<string, unknown>)?.role;

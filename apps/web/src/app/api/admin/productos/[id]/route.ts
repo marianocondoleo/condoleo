@@ -42,7 +42,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const updateData: Record<string, unknown> = {};
     if (validatedData.name !== undefined) updateData.name = validatedData.name;
     if (validatedData.sku !== undefined) updateData.sku = validatedData.sku;
-    if (validatedData.categoryId !== undefined) updateData.categoryId = validatedData.categoryId || null;
     if (validatedData.price !== undefined) updateData.price = validatedData.price;
     if (validatedData.description !== undefined) updateData.description = validatedData.description || null;
     if (validatedData.images !== undefined) updateData.images = validatedData.images;

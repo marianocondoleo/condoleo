@@ -2,7 +2,6 @@ import {
   pgTable,
   text,
   numeric,
-  integer,
   boolean,
   timestamp,
   pgEnum,
@@ -71,21 +70,6 @@ export const addresses = pgTable("addresses", {
 });
 
 /* =========================
-   CATEGORIES
-========================= */
-
-export const categories = pgTable("categories", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-
-  parentId: text("parent_id"),
-
-  displayOrder: integer("display_order").default(0),
-});
-
-/* =========================
    PRODUCTS (PLANTILLAS)
 ========================= */
 
@@ -94,8 +78,6 @@ export const products = pgTable("products", {
 
   name: text("name").notNull(),
   sku: text("sku").notNull().unique(),
-
-  categoryId: text("category_id").references(() => categories.id),
 
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
 
@@ -147,11 +129,9 @@ export const solicitudes = pgTable("solicitudes", {
     scale: 2,
   }),
 
-  // ENVÍO (Andreani)
+  // ENVÍO
   envioModalidad: text("envio_modalidad"),
   envioTracking: text("envio_tracking"),
-  andreaniShipmentId: text("andreani_shipment_id"),
-  andreaniRawResponse: text("andreani_raw_response"),
 
   // SNAPSHOT DIRECCIÓN
   shippingAddressId: text("shipping_address_id"),
@@ -247,16 +227,3 @@ export const paymentConfig = pgTable("payment_config", {
   whatsapp: text("whatsapp"),
 });
 
-/* =========================
-   CONFIG ENVÍOS (opcional)
-========================= */
-
-export const deliveryConfig = pgTable("delivery_config", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-
-  type: text("type").notNull(),
-  value: text("value").notNull(),
-
-  isActive: boolean("is_active").default(true),
-  order: integer("order").default(0),
-});
