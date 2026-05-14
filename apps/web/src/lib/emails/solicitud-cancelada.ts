@@ -30,7 +30,7 @@ export function emailSolicitudCancelada({
         <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; font-size: 12px; color: #999;">
           <p style="margin: 0 0 8px 0; text-align: center;">Precisión · Salud · Confianza</p>
           <p style="margin: 0; font-size: 11px; line-height: 1.5; text-align: center;">
-            Si prefieres no recibir estos emails, puedes <a href="https://condoleo.com/preferencias" style="color: #666; text-decoration: underline;">actualizar tus preferencias</a>.
+            Si prefieres no recibir estos emails, puedes <a href="https://condoleo.com.ar/preferencias" style="color: #666; text-decoration: underline;">actualizar tus preferencias</a>.
           </p>
         </div>
       </div>

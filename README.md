@@ -159,8 +159,8 @@ CLOUDINARY_API_SECRET=...
 
 # Resend (Email)
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=noreply@condoleo.com
-ADMIN_EMAIL=admin@condoleo.com
+RESEND_FROM_EMAIL=noreply@condoleo.com.ar
+ADMIN_EMAIL=admin@condoleo.com.ar
 
 # Upstash Redis (Rate Limiting - opcional)
 UPSTASH_REDIS_REST_URL=https://...
@@ -434,8 +434,8 @@ CLOUDINARY_API_SECRET=...
 
 # Resend
 RESEND_API_KEY=re_prod_...
-RESEND_FROM_EMAIL=noreply@condoleo.com
-ADMIN_EMAIL=admin@condoleo.com
+RESEND_FROM_EMAIL=noreply@condoleo.com.ar
+ADMIN_EMAIL=admin@condoleo.com.ar
 
 # Upstash Redis
 UPSTASH_REDIS_REST_URL=https://...
