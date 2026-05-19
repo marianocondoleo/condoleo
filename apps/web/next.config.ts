@@ -20,7 +20,6 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
-          // Existentes
           {
             key: "X-Content-Type-Options",
             value: "nosniff",
@@ -37,14 +36,13 @@ const nextConfig: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
-          // ✅ FIX 7: NUEVOS - Security Headers
           {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains; preload",
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://*.condoleo.com.ar https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: res.cloudinary.com; connect-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com https://*.condoleo.com.ar; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.condoleo.com.ar; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://*.condoleo.com.ar https://clerk.condoleo.com.ar; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: res.cloudinary.com; connect-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com https://*.condoleo.com.ar https://clerk.condoleo.com.ar; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.condoleo.com.ar https://challenges.cloudflare.com https://clerk.condoleo.com.ar; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';",
           },
           {
             key: "Permissions-Policy",
@@ -52,11 +50,11 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
+            value: "same-origin-allow-popups",
           },
         ],
       },
-      // ✅ FIX 9: Cache para endpoints públicos (productos)
+      // Cache para endpoints públicos (productos)
       {
         source: "/api/products",
         headers: [
@@ -66,7 +64,7 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // ✅ Cache para estáticos
+      // Cache para estáticos
       {
         source: "/(_next/static|public)/(.*)",
         headers: [
@@ -76,7 +74,7 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // ✅ No cachear endpoints privados/admin
+      // No cachear endpoints privados/admin
       {
         source: "/api/(mis-solicitudes|perfil|solicitudes|admin)(.*)",
         headers: [
