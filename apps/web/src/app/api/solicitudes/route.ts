@@ -9,6 +9,7 @@ import { z } from "zod";
 import { resend } from "@/lib/email";
 import { env } from "@/lib/env";
 import { emailAdminSolicitudNueva } from "@/lib/emails/admin-solicitud-nueva";
+import { getAdminEmail } from "@/lib/admin";
 
 export const runtime = "nodejs";
 
@@ -180,28 +181,36 @@ export async function POST(req: Request) {
 
     // Notificar al admin
     try {
-      const emailData = emailAdminSolicitudNueva({
-        solicitudId: nueva.id,
-        pacienteNombre: `${user.name} ${user.lastName}`,
-        pacienteEmail: user.email,
-        producto: product.name,
-        talle,
-        tipoMedida,
-        medicoNombre,
-        notas,
-      });
+      const adminEmail = await getAdminEmail();
+      
+      if (!adminEmail) {
+        logger.warn("api/solicitudes POST", "No se encontró email de admin", {
+          solicitudId: nueva.id,
+        });
+      } else {
+        const emailData = emailAdminSolicitudNueva({
+          solicitudId: nueva.id,
+          pacienteNombre: `${user.name} ${user.lastName}`,
+          pacienteEmail: user.email,
+          producto: product.name,
+          talle,
+          tipoMedida,
+          medicoNombre,
+          notas,
+        });
 
-      await resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
-        to: env.ADMIN_EMAIL,
-        subject: emailData.subject,
-        html: emailData.html,
-      });
+        await resend.emails.send({
+          from: env.RESEND_FROM_EMAIL,
+          to: adminEmail,
+          subject: emailData.subject,
+          html: emailData.html,
+        });
 
-      logger.info("api/solicitudes POST", "Email de notificación enviado al admin", {
-        solicitudId: nueva.id,
-        adminEmail: env.ADMIN_EMAIL,
-      });
+        logger.info("api/solicitudes POST", "Email de notificación enviado al admin", {
+          solicitudId: nueva.id,
+          adminEmail,
+        });
+      }
     } catch (emailError) {
       logger.error("api/solicitudes POST - Email", emailError, {
         solicitudId: nueva.id,

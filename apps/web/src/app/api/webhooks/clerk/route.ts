@@ -8,6 +8,7 @@ import { eq } from "drizzle-orm";
 import { resend } from "@/lib/email";
 import { env } from "@/lib/env";
 import { emailAdminUsuarioNuevo } from "@/lib/emails/admin-usuario-nuevo";
+import { getAdminEmail } from "@/lib/admin";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -78,24 +79,32 @@ export async function POST(req: Request) {
 
       // Notificar al admin
       try {
-        const emailData = emailAdminUsuarioNuevo({
-          email,
-          nombre: first_name ?? null,
-          apellido: last_name ?? null,
-          telefono: phone,
-        });
+        const adminEmail = await getAdminEmail();
+        
+        if (!adminEmail) {
+          logger.warn("User webhook", "No se encontró email de admin", {
+            userId: id,
+          });
+        } else {
+          const emailData = emailAdminUsuarioNuevo({
+            email,
+            nombre: first_name ?? null,
+            apellido: last_name ?? null,
+            telefono: phone,
+          });
 
-        await resend.emails.send({
-          from: env.RESEND_FROM_EMAIL,
-          to: env.ADMIN_EMAIL,
-          subject: emailData.subject,
-          html: emailData.html,
-        });
+          await resend.emails.send({
+            from: env.RESEND_FROM_EMAIL,
+            to: adminEmail,
+            subject: emailData.subject,
+            html: emailData.html,
+          });
 
-        logger.info("User webhook", "Email de notificación enviado al admin", {
-          userId: id,
-          adminEmail: env.ADMIN_EMAIL,
-        });
+          logger.info("User webhook", "Email de notificación enviado al admin", {
+            userId: id,
+            adminEmail,
+          });
+        }
       } catch (emailError) {
         logger.error("Error al enviar email de notificación al admin", new Error(String(emailError)), {
           userId: id,

@@ -126,31 +126,63 @@ export async function POST(req: Request) {
     const province = body.province ?? "";
     const postalCode = body.postalCode ?? "";
 
-    await db.update(users)
-      .set({ name, lastName, phone, dni })
-      .where(eq(users.id, userId));
-
-    const existingAddress = await db.query.addresses.findFirst({
-      where: and(eq(addresses.userId, userId), eq(addresses.isDefault, true)),
-    });
-
-    if (existingAddress) {
-      await db.update(addresses)
-        .set({ street, number, floor, city, province, postalCode })
-        .where(eq(addresses.id, existingAddress.id));
-    } else {
-      await db.insert(addresses).values({
+    // Actualizar datos del usuario
+    try {
+      await db.update(users)
+        .set({ name, lastName, phone, dni })
+        .where(eq(users.id, userId));
+      
+      logger.info("api/perfil POST", "Datos del usuario actualizados", {
         userId,
-        street,
-        number,
-        floor,
-        city,
-        province,
-        postalCode,
-        isDefault: true,
+        name,
+        lastName,
       });
+    } catch (updateError) {
+      logger.error("api/perfil POST - Usuario update", updateError, { userId });
+      return new Response(
+        JSON.stringify({ error: "Error al actualizar datos del usuario" }),
+        { status: 500 }
+      );
     }
 
+    // Actualizar o crear dirección
+    try {
+      const existingAddress = await db.query.addresses.findFirst({
+        where: and(eq(addresses.userId, userId), eq(addresses.isDefault, true)),
+      });
+
+      if (existingAddress) {
+        await db.update(addresses)
+          .set({ street, number, floor, city, province, postalCode })
+          .where(eq(addresses.id, existingAddress.id));
+        
+        logger.info("api/perfil POST", "Dirección actualizada", {
+          userId,
+          addressId: existingAddress.id,
+        });
+      } else {
+        await db.insert(addresses).values({
+          userId,
+          street,
+          number,
+          floor,
+          city,
+          province,
+          postalCode,
+          isDefault: true,
+        });
+        
+        logger.info("api/perfil POST", "Dirección creada", { userId });
+      }
+    } catch (addressError) {
+      logger.error("api/perfil POST - Address update", addressError, { userId });
+      return new Response(
+        JSON.stringify({ error: "Error al actualizar dirección" }),
+        { status: 500 }
+      );
+    }
+
+    logger.info("api/perfil POST", "Perfil actualizado completamente", { userId });
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
     return logger.getErrorResponse("api/perfil POST", error);
