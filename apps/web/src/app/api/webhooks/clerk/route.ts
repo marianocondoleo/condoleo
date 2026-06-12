@@ -5,6 +5,9 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { logger } from "@/lib/logger";
 import { eq } from "drizzle-orm";
+import { resend } from "@/lib/email";
+import { env } from "@/lib/env";
+import { emailAdminUsuarioNuevo } from "@/lib/emails/admin-usuario-nuevo";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -72,6 +75,33 @@ export async function POST(req: Request) {
         userId: id,
         email,
       });
+
+      // Notificar al admin
+      try {
+        const emailData = emailAdminUsuarioNuevo({
+          email,
+          nombre: first_name ?? null,
+          apellido: last_name ?? null,
+          telefono: phone,
+        });
+
+        await resend.emails.send({
+          from: env.RESEND_FROM_EMAIL,
+          to: env.ADMIN_EMAIL,
+          subject: emailData.subject,
+          html: emailData.html,
+        });
+
+        logger.info("User webhook", "Email de notificación enviado al admin", {
+          userId: id,
+          adminEmail: env.ADMIN_EMAIL,
+        });
+      } catch (emailError) {
+        logger.error("Error al enviar email de notificación al admin", new Error(String(emailError)), {
+          userId: id,
+        });
+        // No fallar si el email falla
+      }
     } catch (error) {
       logger.error("Error al crear usuario en BD", new Error(String(error)), {
         userId: id,

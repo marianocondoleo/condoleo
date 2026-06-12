@@ -6,6 +6,15 @@ import { crearSolicitudSchema, mapearErroresZod } from "@/lib/validations";
 import { logger } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { z } from "zod";
+import { resend } from "@/lib/email";
+import { env } from "@/lib/env";
+import { emailAdminSolicitudNueva } from "@/lib/emails/admin-solicitud-nueva";
+import { resend } from "@/lib/email";
+import { env } from "@/lib/env";
+import { emailAdminSolicitudNueva } from "@/lib/emails/admin-solicitud-nueva";
+import { resend } from "@/lib/email";
+import { env } from "@/lib/env";
+import { emailAdminSolicitudNueva } from "@/lib/emails/admin-solicitud-nueva";
 
 export const runtime = "nodejs";
 
@@ -174,6 +183,38 @@ export async function POST(req: Request) {
       productId,
       hasFile: !!fileUrl,
     });
+
+    // Notificar al admin
+    try {
+      const emailData = emailAdminSolicitudNueva({
+        solicitudId: nueva.id,
+        pacienteNombre: `${user.name} ${user.lastName}`,
+        pacienteEmail: user.email,
+        producto: product.name,
+        talle,
+        tipoMedida,
+        medicoNombre,
+        notas,
+      });
+
+      await resend.emails.send({
+        from: env.RESEND_FROM_EMAIL,
+        to: env.ADMIN_EMAIL,
+        subject: emailData.subject,
+        html: emailData.html,
+      });
+
+      logger.info("api/solicitudes POST", "Email de notificación enviado al admin", {
+        solicitudId: nueva.id,
+        adminEmail: env.ADMIN_EMAIL,
+      });
+    } catch (emailError) {
+      logger.error("api/solicitudes POST - Email", emailError, {
+        solicitudId: nueva.id,
+      });
+      // No fallar si el email falla
+    }
+
     return Response.json({ success: true, solicitud: nueva });
   } catch (error) {
     return logger.getErrorResponse("api/solicitudes POST", error);
